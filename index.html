@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Оценка инвестпроектов</title>
+<meta name="description" content="Онлайн-сервис оценки инвестиционных проектов и финансового моделирования: от экспресс-оценки до расширенной модели с кредитами, сценариями и Монте-Карло. Шаблоны, экспорт в Excel и Word, ИИ-ассистент." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231f6feb'/%3E%3Cpath d='M14 44l12-14 9 8 15-20' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="src/ui/styles.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@9.7.1/dist/index.iife.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <button class="icon-btn menu-btn" id="menuBtn" title="Каталог шаблонов" aria-label="Каталог">☰</button>
+    <a class="brand" href="#/">
+      <span class="brand-logo">📐</span>
+      <span class="brand-text"><strong>Оценка инвестпроектов</strong><small>от экспресс-модели до расширенной</small></span>
+    </a>
+    <nav class="levels" id="levels" aria-label="Уровень модели"></nav>
+    <div class="topbar-actions">
+      <button class="btn ghost" id="aiBtn" title="ИИ-ассистент">🤖 Ассистент</button>
+      <button class="btn ghost" id="settingsBtn" title="Настройки">⚙</button>
+    </div>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-head">
+        <input type="search" id="search" placeholder="Поиск шаблона…" aria-label="Поиск шаблона" />
+      </div>
+      <div class="catalog" id="catalog"></div>
+      <div class="sidebar-foot">
+        <a href="docs/METHODOLOGY.md" target="_blank" rel="noopener">Методика</a> · <a href="https://github.com/mmvolkov/invest-project-eval" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </aside>
+    <main class="main" id="main"></main>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true"></div>
+</div>
+<script type="module" src="src/app.js"></script>
+<noscript>Для работы сервиса нужен JavaScript.</noscript>
+</body>
+</html>

@@ -1,0 +1,11 @@
+name = "invest-ai-proxy"
+main = "ai-proxy.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+PROVIDER = "openai"            # openai | anthropic
+BASE_URL = "https://api.openai.com/v1"   # для anthropic: https://api.anthropic.com
+MODEL = "gpt-4o-mini"
+ALLOWED_ORIGINS = "*"          # например: https://mmvolkov.github.io,https://invest.tilda.ws
+
+# Секреты задаются командой `wrangler secret put PROVIDER_KEY` и `wrangler secret put ACCESS_TOKEN`

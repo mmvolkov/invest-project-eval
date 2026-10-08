@@ -1,5 +1,7 @@
 # Оценка инвестпроектов — онлайн-сервис финансового моделирования
 
+**Живой сайт:** https://mmvolkov.github.io/invest-project-eval/ · экспресс-оценка: [`#/t/express?sample=cafe`](https://mmvolkov.github.io/invest-project-eval/#/t/express?sample=cafe) · универсальная модель: [`#/t/project?sample=farm`](https://mmvolkov.github.io/invest-project-eval/#/t/project?sample=farm)
+
 **От максимально простой верхнеуровневой модели до сложной и глубокой.** Статический
 веб-сервис (без сервера и базы данных): расчёты, графики, экспорт и даже запросы к ИИ
 выполняются прямо в браузере. Работает на GitHub Pages, Cloudflare Pages, встраивается в Tilda.

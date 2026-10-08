@@ -10,6 +10,7 @@ import { exportDocx, hasDocx } from './export/docx.js';
 import { deepClone, setPath, getPath } from './engine/utils.js';
 import { tornado, switchingValue, scenarios as runScenarios } from './engine/analysis.js';
 import { PROVIDERS, DEFAULT_AI_SETTINGS } from './ai/providers.js';
+import { DEFAULT_AI_CONFIG } from './ai/config.js';
 import { askAssistant, applyActions, QUICK_PROMPTS } from './ai/assistant.js';
 import { expertReview } from './ai/expert.js';
 
@@ -40,7 +41,7 @@ const state = {
   tab: 'inputs',
   result: null,
   analysis: {},
-  ai: { settings: { ...DEFAULT_AI_SETTINGS, ...LS.get('ipe:ai', {}) }, history: [], lastConclusion: '' },
+  ai: { settings: { ...DEFAULT_AI_SETTINGS, ...DEFAULT_AI_CONFIG, ...LS.get('ipe:ai', {}) }, history: [], lastConclusion: '' },
 };
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -560,6 +561,10 @@ function openImportDialog() {
 function renderAiTab(box) {
   const s = state.ai.settings;
   const configured = s.provider === 'webhook' ? !!s.baseUrl : !!s.apiKey || /localhost|127\.0\.0\.1/.test(s.baseUrl || '');
+  const isDefault = s.provider === DEFAULT_AI_CONFIG.provider && s.baseUrl === DEFAULT_AI_CONFIG.baseUrl && s.model === DEFAULT_AI_CONFIG.model && s.apiKey === DEFAULT_AI_CONFIG.apiKey;
+  const defaultNote = DEFAULT_AI_CONFIG.baseUrl
+    ? `<div class="note" style="margin-bottom:10px">${isDefault ? '✓ Используется подключение по умолчанию' : 'Для сайта задано подключение по умолчанию'}: <strong>${escapeHtml(DEFAULT_AI_CONFIG.label || DEFAULT_AI_CONFIG.model)}</strong>${DEFAULT_AI_CONFIG.apiKey || DEFAULT_AI_CONFIG.provider === 'webhook' ? '' : ' (ключ не задан — укажите свой или подключите прокси)'}.</div>`
+    : '';
   box.innerHTML = `<div class="ai-layout">
     <div class="chat">
       <div class="quick">${QUICK_PROMPTS.map((q, i) => `<button class="btn small qp" data-i="${i}">${escapeHtml(q.label)}</button>`).join('')}<button class="btn small" id="expertBtn" title="Диагностика без LLM">🧮 Диагностика (офлайн)</button></div>
@@ -568,13 +573,14 @@ function renderAiTab(box) {
     </div>
     <div class="ai-settings card">
       <h3>Подключение ИИ</h3>
+      ${defaultNote}
       <div class="field"><label>Провайдер</label><select class="input" id="aiProvider">${PROVIDERS.map((p) => `<option value="${p.id}" ${s.provider === p.id ? 'selected' : ''}>${escapeHtml(p.label)}</option>`).join('')}</select></div>
       <div class="field"><label>${s.provider === 'webhook' ? 'URL вебхука / прокси' : 'Base URL'}</label><input class="input" id="aiUrl" value="${escapeHtml(s.baseUrl || '')}" placeholder="${s.provider === 'webhook' ? 'https://n8n.example.com/webhook/finassist' : 'https://api.openai.com/v1'}" /></div>
       <div class="field"><label>API-ключ ${s.provider === 'webhook' ? '(необязательно, Bearer)' : ''}</label><input class="input" id="aiKey" type="password" value="${escapeHtml(s.apiKey || '')}" autocomplete="off" /></div>
       <div class="field"><label>Модель</label><input class="input" id="aiModel" value="${escapeHtml(s.model || '')}" placeholder="gpt-4o-mini / claude-sonnet-5-5 / deepseek-chat" /></div>
       <div class="field"><label>Доп. заголовки (строка: Name: value)</label><textarea class="input" id="aiHeaders" rows="2" placeholder="HTTP-Referer: https://my.site">${escapeHtml(s.extraHeaders || '')}</textarea></div>
       <label class="check"><input type="checkbox" id="aiAuto" ${s.autoApply ? 'checked' : ''} /> Автопилот: применять предложенные изменения без подтверждения</label>
-      <div class="row"><button class="btn primary" id="aiSave">Сохранить</button><button class="btn" id="aiTest">Проверить</button></div>
+      <div class="row"><button class="btn primary" id="aiSave">Сохранить</button><button class="btn" id="aiTest">Проверить</button>${DEFAULT_AI_CONFIG.baseUrl && !isDefault ? '<button class="btn ghost" id="aiReset" title="Вернуть подключение по умолчанию">↺ По умолчанию</button>' : ''}</div>
       <p class="muted" style="font-size:0.78rem;margin-top:10px">Ключ хранится только в вашем браузере (localStorage) и отправляется напрямую провайдеру. Для командной работы разверните прокси из папки <code>worker/</code> (Cloudflare Worker) или n8n-вебхук — тогда ключ остаётся на сервере.</p>
     </div></div>`;
   const log = $('#chatLog');
@@ -670,6 +676,14 @@ function renderAiTab(box) {
     $('#aiSave').click();
     send('Ответь одной строкой: какой у проекта NPV и что это значит?');
   });
+  const resetBtn = $('#aiReset');
+  if (resetBtn)
+    resetBtn.addEventListener('click', () => {
+      state.ai.settings = { ...DEFAULT_AI_SETTINGS, ...DEFAULT_AI_CONFIG };
+      LS.set('ipe:ai', {});
+      toast('Подключение по умолчанию восстановлено');
+      renderAiTab(box);
+    });
 }
 
 /* ---------- Настройки ---------- */

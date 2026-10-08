@@ -3,9 +3,11 @@ main = "ai-proxy.js"
 compatibility_date = "2025-01-01"
 
 [vars]
-PROVIDER = "openai"            # openai | anthropic
-BASE_URL = "https://api.openai.com/v1"   # для anthropic: https://api.anthropic.com
-MODEL = "gpt-4o-mini"
-ALLOWED_ORIGINS = "*"          # например: https://mmvolkov.github.io,https://invest.tilda.ws
+PROVIDER = "openai"                                  # openai | anthropic
+BASE_URL = "https://ai.pro6000.cloudsmasters.ru/v1"  # OpenAI-совместимый endpoint (для Anthropic: https://api.anthropic.com)
+MODEL = "qwen3.8-27b-nvfp4"
+ALLOWED_ORIGINS = "https://mmvolkov.github.io"       # через запятую; * — разрешить всем
 
-# Секреты задаются командой `wrangler secret put PROVIDER_KEY` и `wrangler secret put ACCESS_TOKEN`
+# Секреты задаются командами (ключ в файл не пишите):
+#   wrangler secret put PROVIDER_KEY    # ключ вашей модели
+#   wrangler secret put ACCESS_TOKEN    # (необязательно) токен доступа к прокси для фронтенда

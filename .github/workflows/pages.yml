@@ -35,6 +35,14 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Inject AI config (vars.AI_PROVIDER / AI_BASE_URL / AI_MODEL / AI_LABEL, secrets.AI_API_KEY)
+        env:
+          AI_PROVIDER: ${{ vars.AI_PROVIDER }}
+          AI_BASE_URL: ${{ vars.AI_BASE_URL }}
+          AI_MODEL: ${{ vars.AI_MODEL }}
+          AI_LABEL: ${{ vars.AI_LABEL }}
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+        run: node scripts/inject-ai-config.mjs
       - uses: actions/configure-pages@v5
         with:
           enablement: true

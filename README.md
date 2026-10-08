@@ -83,6 +83,50 @@ Tilda не выполняет модули и внешние скрипты вн
   (Webhook → Code → OpenAI → Respond to Webhook), указать креды и URL вебхука в сервисе.
   Контракт: `POST { system, messages[], context }` → `{ "reply": "…" }`.
 
+### Модель по умолчанию для всех посетителей
+
+Сейчас по умолчанию подключён учебный OpenAI-совместимый сервер
+`https://hr-assistant.pro6000.cloudsmasters.ru/api/v1` (vLLM, модель `qwen3.8-27b-nvfp4`, доступна
+также `gpt-oss-120b`). Он разрешает CORS и принимает любой ключ, поэтому ассистент работает сразу,
+без настройки. Пользователь может указать свой провайдер в настройках ассистента и вернуться
+кнопкой «↺ По умолчанию».
+
+Значения по умолчанию лежат в [`src/ai/config.js`](src/ai/config.js) (провайдер, адрес, модель, подпись).
+При деплое на GitHub Pages шаг «Inject AI config» перезаписывает этот файл из настроек репозитория
+(**Settings → Secrets and variables → Actions**):
+
+| Где | Имя | Значение |
+|---|---|---|
+| Variables | `AI_PROVIDER` | `openai`, `anthropic` или `webhook` |
+| Variables | `AI_BASE_URL` | адрес API, прокси или вебхука |
+| Variables | `AI_MODEL` | имя модели |
+| Variables | `AI_LABEL` | подпись в интерфейсе |
+| Secrets | `AI_API_KEY` | ключ (в git не попадает) |
+
+Два важных ограничения статического сайта:
+
+1. **Ключ, подставленный в сборку, виден любому посетителю** в JavaScript сайта. Это приемлемо только
+   для тестового ключа с лимитами. Боевой ключ держите на прокси (вариант ниже), тогда `AI_API_KEY`
+   на GitHub не нужен вовсе.
+2. **API должен разрешать запросы из браузера (CORS)**: отвечать на preflight-запрос `OPTIONS` без
+   авторизации и с заголовком `Access-Control-Allow-Origin`. Если сервер модели этого не делает,
+   браузер заблокирует вызов, и единственный путь — прокси.
+
+**Рекомендуемая схема с Cloudflare Worker** (бесплатный тариф, ключ не покидает Cloudflare):
+
+```bash
+npm i -g wrangler && wrangler login
+cd worker
+# BASE_URL / MODEL / ALLOWED_ORIGINS уже заполнены в wrangler.toml — поправьте под себя
+wrangler secret put PROVIDER_KEY    # ключ вашей модели
+wrangler secret put ACCESS_TOKEN    # любой случайный токен, чтобы прокси не был открыт для всех
+wrangler deploy                     # выведет адрес вида https://invest-ai-proxy.<account>.workers.dev
+```
+
+Затем в GitHub: Variables `AI_PROVIDER=webhook`, `AI_BASE_URL=<адрес воркера>`, Secret
+`AI_API_KEY=<ACCESS_TOKEN>` и любой пуш в `main` (или Re-run workflow) опубликует сайт с подключённой
+моделью. Вместо воркера подойдёт n8n-вебхук с тем же контрактом.
+
 ### Как ассистент меняет модель
 
 Ассистент получает схему полей, текущие данные и результаты, а в ответе может добавить блок

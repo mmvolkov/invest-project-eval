@@ -47,7 +47,7 @@ ${result.conclusion.map((l) => '- ' + l).join('\n')}
 \`\`\`json
 {"actions":[{"op":"set","path":"<путь поля>","value":<значение>,"why":"<причина>"}]}
 \`\`\`
-Допустимые op: "set" (установить значение; для series передай полный массив), "scale" (умножить число или весь ряд на (1+value), value в долях), "shift" (прибавить value), "add_item" (добавить объект в список items), "remove_item" (удалить элемент списка по index). Пути — только из списка полей выше. Не добавляй блок, если изменений не предлагаешь. Если данных не хватает — задай уточняющий вопрос. Не выдумывай результаты расчёта: после применения действий сервис пересчитает модель сам.`;
+Допустимые op: "set" (установить значение; для series передай полный массив), "scale" (умножить число или весь ряд на (1+value), value в долях), "shift" (прибавить value), "add_item" (добавить объект в список items), "remove_item" (удалить элемент списка по index). Пути — только из списка полей выше; поле элемента списка адресуется через индекс: capex.items.0.amount, financing.loans.0.rate. Не добавляй блок, если изменений не предлагаешь. Если данных не хватает — задай уточняющий вопрос. Не выдумывай результаты расчёта: после применения действий сервис пересчитает модель сам.`;
 }
 
 export const QUICK_PROMPTS = [
@@ -93,7 +93,8 @@ export function applyActions(template, inputs, actions) {
   const allowed = new Set(flattenFields(template).map((f) => f.key));
   const log = [];
   for (const a of actions) {
-    const path = String(a.path || '');
+    // поддерживаем обе нотации: capex.items[0].amount и capex.items.0.amount
+    const path = String(a.path || '').replace(/\[(\d+)\]/g, '.$1').replace(/^\./, '');
     const root = path.split('.').slice(0, 2).join('.');
     const ok = allowed.has(path) || allowed.has(root) || [...allowed].some((k) => path.startsWith(k + '.') || k.startsWith(path + '.'));
     if (!ok) {

@@ -1,0 +1,22 @@
+sequenceDiagram
+  actor U as Пользователь
+  participant UI as app.js (вкладка ИИ)
+  participant AS as assistant.js
+  participant P as providers.js
+  participant L as LLM API / прокси
+  participant T as template
+  U->>UI: вопрос или быстрый промпт
+  UI->>AS: askAssistant({template, inputs, result, history, userText, settings})
+  AS->>AS: buildSystemPrompt(): схема полей + inputs + KPI + заключение
+  AS->>P: chat({system, messages, settings})
+  P->>L: POST /chat/completions (или /v1/messages, или webhook)
+  L-->>P: текст ответа
+  P-->>AS: text
+  AS->>AS: parseActions(text) → {message, actions[]}
+  AS-->>UI: message + actions
+  UI-->>U: ответ и список предложенных изменений
+  U->>UI: «Применить» (или автопилот)
+  UI->>AS: applyActions(template, inputs, actions)
+  AS-->>UI: новые inputs + лог
+  UI->>T: normalize + compute
+  UI-->>U: модель пересчитана, системное сообщение в чате

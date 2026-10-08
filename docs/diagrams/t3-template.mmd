@@ -1,0 +1,68 @@
+classDiagram
+  class Template {
+    +string id
+    +string category
+    +string subcategory
+    +string title
+    +string short
+    +string description
+    +string[] levels
+    +string minLevel
+    +string[] tags
+    +string periodsPath
+    +Group[] schema
+    +Sample[] samples
+    +Driver[] drivers
+    +Metric[] metrics
+    +compute(inputs) Result
+    +metric(inputs, key) number
+    +normalize(inputs) inputs
+    +defaultScenarios() Scenario[]
+    +defaultMonteCarlo() McVar[]
+  }
+  class Group {
+    +string id
+    +string title
+    +string level
+    +Field[] fields
+  }
+  class Field {
+    +string key  "путь в inputs"
+    +string label
+    +string type  "text|number|int|percent|select|bool|series|items"
+    +string level
+    +ShowIf showIf
+    +Field[] itemFields
+    +string lengthFrom
+    +newItem()
+  }
+  class Result {
+    +Kpi[] kpis
+    +Table[] tables
+    +Chart[] charts
+    +string[] conclusion
+    +object metric
+    +number[] flows
+    +string unit
+    +object raw
+  }
+  class Driver {
+    +string path
+    +string label
+    +string mode  "scale|shift"
+    +string itemKey
+    +number shiftScale
+  }
+  class Kpi {
+    +string key
+    +string label
+    +number value
+    +string fmt  "money|pct|ratio|years|int|num"
+    +bool good
+    +string hint
+  }
+  Template "1" *-- "*" Group
+  Group "1" *-- "*" Field
+  Template "1" *-- "*" Driver
+  Template ..> Result : compute()
+  Result "1" *-- "*" Kpi

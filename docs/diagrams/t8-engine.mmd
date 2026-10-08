@@ -1,0 +1,16 @@
+flowchart TB
+  subgraph PRJ["engine/project.js → computeProject(inputs)"]
+    direction TB
+    S1["normalizeProjectInputs<br/>длины рядов, типы, границы"]
+    S2["CapEx: capexSeries, depreciation,<br/>residual (liquidation)"]
+    S3["Financing: loanSchedule по каждому кредиту →<br/>drawdown, interest, principal, debtBalance"]
+    S4["Effect: revenue, varCosts, fixedCosts, savings →<br/>EBITDA; WC и ΔWC"]
+    S5["CF: EBIT, налог (unlevered/levered, перенос убытков),<br/>NOPAT, FCFF, FCFE, terminal, DF, DCF"]
+    S6["KPI: npv, irr, mirr, pi, pp, dpp, ПФ/ДПФ,<br/>maxDrawdown, DSCR, npvEquity, irrEquity"]
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6
+  end
+  FIN["engine/finance.js<br/>npv · irr · mirr · profitabilityIndex ·<br/>paybackPeriod · fundingNeed · loanSchedule ·<br/>depreciationSchedule · capm · wacc · gordon"]
+  S2 -.-> FIN
+  S3 -.-> FIN
+  S5 -.-> FIN
+  S6 -.-> FIN

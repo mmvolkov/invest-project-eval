@@ -9,7 +9,7 @@ import { exportXlsx, exportCsv, readTabular, guessMapping, hasXlsx } from './exp
 import { exportDocx, hasDocx } from './export/docx.js';
 import { deepClone, setPath, getPath } from './engine/utils.js';
 import { tornado, switchingValue, scenarios as runScenarios } from './engine/analysis.js';
-import { PROVIDERS, DEFAULT_AI_SETTINGS } from './ai/providers.js';
+import { PROVIDERS, DEFAULT_AI_SETTINGS, chat } from './ai/providers.js';
 import { DEFAULT_AI_CONFIG } from './ai/config.js';
 import { askAssistant, applyActions, QUICK_PROMPTS } from './ai/assistant.js';
 import { expertReview } from './ai/expert.js';
@@ -682,11 +682,23 @@ function renderAiTab(box) {
     toast('Настройки ИИ сохранены');
     renderAiTab(box);
   });
+  // одиночный клик — проверка подключения (с задержкой, чтобы отличить от двойного);
+  // двойной клик — скрытый режим: всплывающее окно свободного чата с моделью
+  let testTimer = null;
   $('#aiTest').addEventListener('click', () => {
+    clearTimeout(testTimer);
+    testTimer = setTimeout(() => {
+      saveSettings();
+      const s2 = state.ai.settings;
+      if (!(s2.provider === 'webhook' ? !!s2.baseUrl : !!s2.apiKey || /localhost|127\.0\.0\.1/.test(s2.baseUrl || ''))) return renderAiTab(box);
+      send('Ответь одной строкой: какой у проекта NPV и что это значит?');
+    }, 280);
+  });
+  $('#aiTest').addEventListener('dblclick', (e) => {
+    e.preventDefault();
+    clearTimeout(testTimer);
     saveSettings();
-    const s2 = state.ai.settings;
-    if (!(s2.provider === 'webhook' ? !!s2.baseUrl : !!s2.apiKey || /localhost|127\.0\.0\.1/.test(s2.baseUrl || ''))) return renderAiTab(box);
-    send('Ответь одной строкой: какой у проекта NPV и что это значит?');
+    openFreeChat();
   });
   const resetBtn = $('#aiReset');
   if (resetBtn)
@@ -696,6 +708,64 @@ function renderAiTab(box) {
       toast('Подключение по умолчанию восстановлено');
       renderAiTab(box);
     });
+}
+
+/* ---------- Скрытый режим: свободный чат с моделью ---------- */
+function openFreeChat() {
+  const s = state.ai.settings;
+  if (!state.ai.freeHistory) state.ai.freeHistory = [];
+  const hist = state.ai.freeHistory;
+  const m = modal(`<h2>💬 Чат с моделью <small class="muted" style="font-size:0.8rem;font-weight:400;margin-left:8px">${escapeHtml(s.model || s.provider)}</small> <button class="close" aria-label="Закрыть">✕</button></h2>
+    <p class="muted" style="margin-top:-6px">Свободный диалог без привязки к финансовой модели. История хранится только в этой вкладке.</p>
+    <div class="chat" style="min-height:420px;max-height:60vh">
+      <div class="chat-log" id="freeLog"></div>
+      <div class="chat-input"><textarea id="freeText" placeholder="Напишите сообщение… (Ctrl+Enter — отправить)"></textarea><button class="btn primary" id="freeSend">Отправить</button></div>
+    </div>
+    <div class="row" style="margin-top:8px"><button class="btn small ghost" id="freeClear">Очистить историю</button><span class="spacer"></span><small class="muted">Esc — закрыть</small></div>`);
+  const log = m.querySelector('#freeLog');
+  const render = () => {
+    log.innerHTML = hist.map((x) => (x.role === 'user' ? `<div class="msg user">${escapeHtml(x.content)}</div>` : x.role === 'system' ? `<div class="msg system">${escapeHtml(x.content)}</div>` : `<div class="msg assistant"><div class="md">${mdToHtml(x.content)}</div></div>`)).join('') || '<div class="empty">Начните диалог</div>';
+    log.scrollTop = log.scrollHeight;
+  };
+  render();
+  const input = m.querySelector('#freeText');
+  const btn = m.querySelector('#freeSend');
+  const send = async () => {
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    hist.push({ role: 'user', content: text });
+    render();
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span>';
+    try {
+      const { text: reply } = await chat({
+        system: 'Ты — полезный ассистент. Отвечай по-русски, кратко и по делу. Используй markdown для структуры.',
+        messages: hist.filter((x) => x.role !== 'system').slice(-20).map((x) => ({ role: x.role, content: x.content })),
+        context: {},
+        settings: state.ai.settings,
+      });
+      hist.push({ role: 'assistant', content: reply || '(пустой ответ)' });
+    } catch (e) {
+      hist.push({ role: 'system', content: 'Ошибка запроса: ' + e.message });
+    }
+    btn.disabled = false;
+    btn.textContent = 'Отправить';
+    render();
+    input.focus();
+  };
+  btn.addEventListener('click', send);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      send();
+    }
+  });
+  m.querySelector('#freeClear').addEventListener('click', () => {
+    hist.length = 0;
+    render();
+  });
+  setTimeout(() => input.focus(), 50);
 }
 
 /* ---------- Настройки ---------- */

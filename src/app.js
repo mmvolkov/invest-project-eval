@@ -666,14 +666,19 @@ function renderAiTab(box) {
     state.ai.settings = { ...state.ai.settings, provider: p.id, baseUrl: p.baseUrl, model: p.model };
     renderAiTab(box);
   });
-  $('#aiSave').addEventListener('click', () => {
+  const saveSettings = () => {
     state.ai.settings = { ...state.ai.settings, provider: $('#aiProvider').value, baseUrl: $('#aiUrl').value.trim(), apiKey: $('#aiKey').value.trim(), model: $('#aiModel').value.trim(), extraHeaders: $('#aiHeaders').value, autoApply: $('#aiAuto').checked };
     LS.set('ipe:ai', state.ai.settings);
+  };
+  $('#aiSave').addEventListener('click', () => {
+    saveSettings();
     toast('Настройки ИИ сохранены');
     renderAiTab(box);
   });
-  $('#aiTest').addEventListener('click', async () => {
-    $('#aiSave').click();
+  $('#aiTest').addEventListener('click', () => {
+    saveSettings();
+    const s2 = state.ai.settings;
+    if (!(s2.provider === 'webhook' ? !!s2.baseUrl : !!s2.apiKey || /localhost|127\.0\.0\.1/.test(s2.baseUrl || ''))) return renderAiTab(box);
     send('Ответь одной строкой: какой у проекта NPV и что это значит?');
   });
   const resetBtn = $('#aiReset');

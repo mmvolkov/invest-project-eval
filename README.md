@@ -2,6 +2,15 @@
 
 **Живой сайт:** https://mmvolkov.github.io/invest-project-eval/ · экспресс-оценка: [`#/t/express?sample=cafe`](https://mmvolkov.github.io/invest-project-eval/#/t/express?sample=cafe) · универсальная модель: [`#/t/project?sample=farm`](https://mmvolkov.github.io/invest-project-eval/#/t/project?sample=farm)
 
+## Документация
+
+| Документ | Для кого | Формат |
+|---|---|---|
+| [Описание сервиса для бизнес-заказчиков](docs/Описание_сервиса_для_бизнеса.docx) | Руководители, заказчики, финансисты: что делает сервис, как работает, примеры, схемы | Word ([скачать с сайта](https://mmvolkov.github.io/invest-project-eval/docs/Описание_сервиса_для_бизнеса.docx)) |
+| [Техническая документация](docs/TECHNICAL.md) | Разработчики: архитектура, каждый модуль, скрипт и компонент, форматы данных, протокол ИИ, тесты, деплой | Markdown · [Word](docs/TECHNICAL.docx) ([скачать с сайта](https://mmvolkov.github.io/invest-project-eval/docs/TECHNICAL.docx)) |
+| [Методика расчётов](docs/METHODOLOGY.md) | Финансисты и аналитики: формулы, структура модели, контрольные примеры, источники | Markdown |
+| [Схемы](docs/diagrams/) | Исходники mermaid, PNG в [docs/img](docs/img/), рендер `node scripts/render-diagrams.mjs` | mermaid · PNG |
+
 **От максимально простой верхнеуровневой модели до сложной и глубокой.** Статический
 веб-сервис (без сервера и базы данных): расчёты, графики, экспорт и даже запросы к ИИ
 выполняются прямо в браузере. Работает на GitHub Pages, Cloudflare Pages, встраивается в Tilda.

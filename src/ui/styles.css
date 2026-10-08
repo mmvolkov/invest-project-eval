@@ -121,6 +121,8 @@ small, .muted { color: var(--fg-2); }
 .step .num { display: inline-block; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff; text-align: center; line-height: 28px; font-weight: 600; margin-bottom: 8px; }
 .grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
 .card { background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); }
+a.card { display: block; color: var(--fg); }
+a.card:hover { text-decoration: none; }
 .card.clickable { cursor: pointer; transition: transform 0.12s, border-color 0.12s; }
 .card.clickable:hover { transform: translateY(-2px); border-color: var(--accent); }
 

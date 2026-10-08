@@ -1,0 +1,14 @@
+flowchart LR
+  I["inputs (JSON)<br/>данные формы"] --> N["template.normalize()<br/>(если есть)"]
+  N --> C["template.compute(inputs)"]
+  C --> R["result<br/>{ kpis[], tables[], charts[],<br/>conclusion[], metric{}, raw }"]
+  R --> K["renderKpis"]
+  R --> T["renderTables"]
+  R --> G["renderCharts"]
+  R --> X["exportXlsx / exportDocx"]
+  R --> P["buildSystemPrompt (ИИ)"]
+  I --> M["template.metric(inputs, key)"]
+  M --> A["analysis.js<br/>tornado / switchingValue /<br/>scenarios / monteCarlo"]
+  A --> AU["analysis_ui.js"]
+  style C fill:#fff4dc,stroke:#b7791f
+  style R fill:#e4f5ea,stroke:#1a7f4b

@@ -1,0 +1,21 @@
+sequenceDiagram
+  actor U as Пользователь
+  participant F as forms.js
+  participant A as app.js
+  participant T as template
+  participant E as engine
+  participant R as results.js
+  U->>F: меняет поле (change)
+  F->>A: onChange(path, value, {structural})
+  A->>A: setPath(state.inputs, path, value)
+  A->>T: normalize(inputs)
+  A->>T: compute(inputs)
+  T->>E: computeProject / finance.*
+  E-->>T: ряды и показатели
+  T-->>A: result
+  A->>A: persistInputs() → localStorage
+  alt structural (горизонт, список, select)
+    A->>F: renderForm() заново
+  end
+  A->>R: renderKpis / renderConclusion
+  R-->>U: обновлённые показатели

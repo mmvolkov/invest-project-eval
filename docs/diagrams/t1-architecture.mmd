@@ -1,0 +1,57 @@
+flowchart TB
+  subgraph HOST["Хостинг статических файлов: GitHub Pages / Cloudflare Pages / iframe в Tilda"]
+    direction LR
+    IDX["index.html<br/>оболочка страницы,<br/>подключение CDN"]
+    CSS["src/ui/styles.css<br/>тема, адаптив, печать"]
+    APP["src/app.js<br/>состояние · маршрутизация ·<br/>вкладки · экспорт · чат ИИ"]
+    IDX --> APP
+  end
+  subgraph UI["src/ui/ — интерфейс"]
+    direction LR
+    FORMS["forms.js<br/>форма по схеме"]
+    RES["results.js<br/>KPI · таблицы"]
+    CHARTS["charts.js<br/>Chart.js"]
+    AN["analysis_ui.js<br/>риски"]
+    FMT["format.js"]
+  end
+  subgraph TPL["src/templates/ — библиотека шаблонов"]
+    direction LR
+    REG["index.js<br/>реестр"]
+    PT["project.js<br/>express · project"]
+    IT["invest_tools.js<br/>wacc · loan · leasing · compare"]
+    AT["analysis_tools.js<br/>breakeven · factor · planfact ·<br/>ratios · budget · valuation"]
+  end
+  subgraph ENG["src/engine/ — расчётное ядро (чистые функции, без DOM)"]
+    direction LR
+    FIN["finance.js<br/>NPV · IRR · MIRR · PI · PP ·<br/>кредиты · амортизация · CAPM · WACC"]
+    PRJ["project.js<br/>CapEx / Financing / Effect / CF"]
+    ANL["analysis.js<br/>торнадо · пороги ·<br/>сценарии · Монте-Карло"]
+    UT["utils.js<br/>пути · драйверы"]
+  end
+  subgraph EXP["src/export/"]
+    direction LR
+    EX["xlsx.js<br/>Excel · CSV · импорт"]
+    ED["docx.js<br/>отчёт Word"]
+  end
+  subgraph AI["src/ai/"]
+    direction LR
+    PR["providers.js<br/>OpenAI-совм. · Anthropic · webhook"]
+    AS["assistant.js<br/>промпт · actions"]
+    EXPT["expert.js<br/>офлайн-диагностика"]
+    CFG["config.js<br/>подключение по умолчанию"]
+  end
+  subgraph EXT["Внешнее"]
+    direction LR
+    CDN["CDN jsdelivr:<br/>Chart.js · SheetJS · docx"]
+    LS[("localStorage<br/>модели · настройки")]
+    LLM[("LLM API<br/>или прокси")]
+  end
+  APP --> UI
+  APP --> TPL
+  APP --> EXP
+  APP --> AI
+  TPL --> ENG
+  AN --> ANL
+  APP <--> LS
+  IDX -.-> CDN
+  PR --> LLM

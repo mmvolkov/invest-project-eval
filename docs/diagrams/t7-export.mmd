@@ -1,0 +1,9 @@
+flowchart TB
+  R["result + inputs + analysis"]
+  R --> X["export/xlsx.js → exportXlsx()"]
+  R --> D["export/docx.js → exportDocx()"]
+  X --> X1["«Исходные данные» · «Показатели» ·<br/>лист на каждую таблицу (в «CF» формулы DF/DCF/NPV/IRR/PI) ·<br/>Чувствительность · Сценарии · Монте-Карло · Заключение"]
+  X1 --> F["XLSX.write → Blob → скачивание"]
+  D --> D1["титул · KPI-таблица · заключение и риски ·<br/>заключение ИИ · графики (PNG из canvas) ·<br/>таблицы · исходные данные"]
+  D1 --> G["Packer.toBlob → скачивание"]
+  IMP["Импорт: readTabular(file) xlsx/csv"] --> MAP["guessMapping → диалог сопоставления"] --> SET["setPath(inputs, series) → пересчёт"]

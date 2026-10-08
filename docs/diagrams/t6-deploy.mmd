@@ -1,0 +1,11 @@
+flowchart TB
+  DEV["git push в main"] --> GA["GitHub Actions: .github/workflows/pages.yml"]
+  GA --> T["job test — node --test tests/*.test.mjs"]
+  T --> D1["scripts/inject-ai-config.mjs<br/>vars.AI_* + secrets.AI_API_KEY → src/ai/config.js"]
+  D1 --> D2["configure-pages (enablement) →<br/>upload-pages-artifact (корень) → deploy-pages"]
+  D2 --> SITE["https://mmvolkov.github.io/invest-project-eval/"]
+  SITE -.->|"iframe"| TILDA["Страница Tilda"]
+  SITE -->|"fetch из браузера"| LLM["LLM endpoint (нужен CORS)"]
+  SITE -.->|"альтернатива"| WK["worker/ai-proxy.js<br/>Cloudflare Worker, ключ на сервере"]
+  WK --> LLM
+  style SITE fill:#e4f5ea,stroke:#1a7f4b

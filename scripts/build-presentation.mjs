@@ -2,6 +2,8 @@
  * Сборка презентации сервиса (pptx) для рассылки — читается без спикера.
  * Запуск: PPTX_MODULES=<папка с node_modules, где есть pptxgenjs и qrcode> SHOTS=<папка скриншотов> node scripts/build-presentation.mjs
  * Выход: docs/Презентация_сервиса.pptx
+ * ВНИМАНИЕ: текущий docs/Презентация_сервиса.pptx — версия v2, доработанная вручную в PowerPoint (высота карточек на слайдах 9, 11, 12).
+ * При пересборке скриптом проверьте эти слайды визуально.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -18,7 +20,10 @@ const { applyTheme } = require(path.join(root, "scripts/pptx-apply-theme.cjs"));
 const SHOTS = process.env.SHOTS || path.join(root, 'docs/img');
 const IMG = path.join(root, 'docs/img');
 const SITE = 'https://scout-argument.ru/invest-project-eval/';
-const OUT = path.join(root, 'docs/Презентация_сервиса.pptx');
+// NO_LINKS=1 — вариант без адреса сайта и QR-кода (для видео без ссылок); OUT — путь результата
+const NO_LINKS = !!process.env.NO_LINKS;
+const SITE_TEXT = NO_LINKS ? 'Оценка инвестпроектов · демонстрация сервиса' : SITE;
+const OUT = process.env.OUT || path.join(root, 'docs/Презентация_сервиса.pptx');
 
 const THEME = {
   name: 'InvestEval',
@@ -69,7 +74,7 @@ pres.defineSlideMaster({
   background: { color: THEME.colors.lt1 },
   objects: [
     { placeholder: { options: { name: 'title', type: 'title', x: M, y: 0.45, w: W - 2 * M, h: 1.0, fontSize: 28, bold: true, color: C.text1, align: 'left', valign: 'middle', margin: 0 }, text: '' } },
-    { text: { text: SITE, options: { x: M, y: H - 0.45, w: 7, h: 0.3, fontSize: 10, color: THEME.colors.dk2, margin: 0 } } },
+    { text: { text: SITE_TEXT, options: { x: M, y: H - 0.45, w: 7, h: 0.3, fontSize: 10, color: THEME.colors.dk2, margin: 0 } } },
   ],
   slideNumber: { x: W - M - 0.6, y: H - 0.45, w: 0.6, h: 0.3, fontSize: 10, color: THEME.colors.dk2, align: 'right' },
 });
@@ -112,8 +117,8 @@ pres.addSection({ title: 'Проблема' });
   s.addText('Оценка инвестпроектов', { placeholder: 'title' });
   s.addText('Онлайн-сервис, который за минуту отвечает «окупится или нет», а при необходимости разворачивается в полную финансовую модель для банка и инвесткомитета.', { placeholder: 'body' });
   s.addShape(pres.ShapeType.roundRect, { x: W - M - 3.9, y: 0.7, w: 3.9, h: 0.6, fill: { color: '1F2A3C' }, line: { color: '1F2A3C' }, rectRadius: 0.1 });
-  T(s, 'Бесплатно · без регистрации · в браузере', { x: W - M - 3.75, y: 0.7, w: 3.6, h: 0.6, fontSize: 12, color: 'CADCFC', valign: 'middle', align: 'center' });
-  T(s, SITE, { x: M, y: 5.6, w: 8, h: 0.4, fontSize: 16, color: '4C8DFF' });
+  T(s, NO_LINKS ? 'Без установки · в браузере · на ваших данных' : 'Бесплатно · без регистрации · в браузере', { x: W - M - 3.75, y: 0.7, w: 3.6, h: 0.6, fontSize: 12, color: 'CADCFC', valign: 'middle', align: 'center' });
+  T(s, NO_LINKS ? 'Доступ к сервису предоставляется по запросу' : SITE, { x: M, y: 5.6, w: 8, h: 0.4, fontSize: 16, color: '4C8DFF' });
   T(s, 'Презентация для знакомства с сервисом · ' + new Date().toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }), { x: M, y: 6.1, w: 8, h: 0.4, fontSize: 12, color: '8A96A3' });
   s.addNotes('Титульный слайд. Деск предназначен для самостоятельного чтения.');
 }
@@ -265,7 +270,7 @@ pres.addSection({ title: 'Решение' });
     ['Сценарии', 'Базовый, пессимистичный, оптимистичный с вероятностями. Итог: ожидаемое значение NPV.'],
     ['Монте-Карло', 'Тысячи случайных пересчётов. Результат: вероятность убытка и диапазон, в который попадёт NPV с вероятностью 80 %.'],
   ];
-  rows.forEach(([t, d], i) => card(s, bx, 1.5 + i * 1.33, bw, 1.2, { title: t, text: d, titleSize: 14, textSize: 12, fill: i % 2 ? 'EEF2F8' : 'FFF4DC', titleColor: i % 2 ? C.accent1 : C.accent6 }));
+  rows.forEach(([t, d], i) => card(s, bx, 1.5 + i * 1.36, bw, 1.3, { title: t, text: d, titleSize: 14, textSize: 12, fill: i % 2 ? 'EEF2F8' : 'FFF4DC', titleColor: i % 2 ? C.accent1 : C.accent6 }));
 }
 // 10. ИИ
 {
@@ -298,7 +303,7 @@ pres.addSection({ title: 'Решение' });
     ['Бюджеты', 'БДР, БДДС и прогнозный баланс на 12 месяцев с лагами оплаты и проверкой «актив = пассив»', 'E4F5EA', C.accent3],
     ['Отчёты', 'оценка стоимости бизнеса методом DCF, финансовые коэффициенты с нормативами и моделью Дюпон', 'F1E6FB', C.accent2],
   ];
-  groups.forEach(([t, d, fill, col], i) => card(s, bx, 1.5 + i * 1.33, bw, 1.2, { title: t, text: d, fill, titleColor: col, titleSize: 14, textSize: 12 }));
+  groups.forEach(([t, d, fill, col], i) => card(s, bx, 1.5 + i * 1.36, bw, 1.3, { title: t, text: d, fill, titleColor: col, titleSize: 14, textSize: 12 }));
 }
 // 12. Результат
 {
@@ -315,7 +320,7 @@ pres.addSection({ title: 'Решение' });
     ['CSV и JSON', 'Любая таблица отдельно для BI; вся модель файлом, чтобы открыть позже или передать коллеге.'],
     ['Импорт', 'Ряды по годам вставляются из Excel через буфер или загружаются файлом с автосопоставлением строк.'],
   ];
-  items.forEach(([t, d], i) => card(s, bx, 1.5 + i * 1.33, bw, 1.2, { title: t, text: d, titleSize: 14, textSize: 12, fill: i % 2 ? 'EEF2F8' : 'E8F0FE' }));
+  items.forEach(([t, d], i) => card(s, bx, 1.5 + i * 1.36, bw, 1.3, { title: t, text: d, titleSize: 14, textSize: 12, fill: i % 2 ? 'EEF2F8' : 'E8F0FE' }));
 }
 
 pres.addSection({ title: 'Применение' });
@@ -370,7 +375,7 @@ pres.addSection({ title: 'Применение' });
   const s = pres.addSlide({ masterName: 'DARK', sectionTitle: 'Применение' });
   s.addText('Как начать прямо сейчас: три шага и две минуты', { placeholder: 'title' });
   const steps = [
-    ['Откройте сайт', 'Любой браузер, компьютер или телефон. Ничего устанавливать не нужно.'],
+    NO_LINKS ? ['Получите доступ', 'Доступ предоставляется по запросу. Любой браузер, компьютер или телефон, ничего устанавливать не нужно.'] : ['Откройте сайт', 'Любой браузер, компьютер или телефон. Ничего устанавливать не нужно.'],
     ['Нажмите «Экспресс-оценка за минуту»', 'Выберите пример и замените цифры на свои. Показатели появятся сразу.'],
     ['Скачайте отчёт', 'Вкладка «Отчёт и экспорт»: Excel с формулами или Word для инвесткомитета.'],
   ];
@@ -381,15 +386,24 @@ pres.addSection({ title: 'Применение' });
     T(s, t, { x: M + 0.95, y, w: 6.8, h: 0.4, fontSize: 18, bold: true, color: C.background1 });
     T(s, d, { x: M + 0.95, y: y + 0.42, w: 6.8, h: 0.7, fontSize: 14, color: 'CADCFC' });
   });
-  T(s, SITE, { x: M, y: 5.95, w: 7.5, h: 0.45, fontSize: 18, bold: true, color: '4C8DFF' });
-  T(s, 'Готовые ссылки: экспресс-оценка #/t/express?sample=cafe · универсальная модель #/t/project?sample=farm · документация и методика в репозитории GitHub', { x: M, y: 6.45, w: 7.8, h: 0.6, fontSize: 11, color: '8A96A3' });
-  // QR
-  const qrFile = path.join(process.env.TMPDIR || '/tmp', 'ipe-qr.png');
-  await QRCode.toFile(qrFile, SITE, { width: 600, margin: 1, color: { dark: '16202C', light: 'FFFFFF' } });
-  s.addShape(pres.ShapeType.roundRect, { x: W - M - 3.4, y: 1.6, w: 3.4, h: 4.3, fill: { color: 'FFFFFF' }, line: { color: 'FFFFFF' }, rectRadius: 0.15 });
-  s.addImage({ path: qrFile, x: W - M - 3.1, y: 1.8, w: 2.8, h: 2.8, objectName: 'QR-код сайта' });
-  T(s, 'Наведите камеру, чтобы открыть сервис', { x: W - M - 3.2, y: 4.7, w: 3.0, h: 0.5, fontSize: 13, bold: true, color: C.text1, align: 'center' });
-  T(s, 'Бесплатно · без регистрации', { x: W - M - 3.2, y: 5.2, w: 3.0, h: 0.4, fontSize: 12, color: C.text2, align: 'center' });
+  if (NO_LINKS) {
+    T(s, 'Доступ к сервису предоставляется по запросу', { x: M, y: 5.95, w: 7.5, h: 0.45, fontSize: 18, bold: true, color: '4C8DFF' });
+    T(s, 'Напишите нам, и мы откроем доступ, покажем сервис на ваших данных и ответим на вопросы.', { x: M, y: 6.45, w: 7.8, h: 0.6, fontSize: 11, color: '8A96A3' });
+    s.addShape(pres.ShapeType.roundRect, { x: W - M - 3.4, y: 1.6, w: 3.4, h: 4.3, fill: { color: '1F2A3C' }, line: { color: '1F2A3C' }, rectRadius: 0.15 });
+    T(s, '✉', { x: W - M - 3.4, y: 2.0, w: 3.4, h: 1.4, fontSize: 60, color: '4C8DFF', align: 'center', valign: 'middle' });
+    T(s, 'Доступ по запросу', { x: W - M - 3.2, y: 3.6, w: 3.0, h: 0.5, fontSize: 16, bold: true, color: C.background1, align: 'center' });
+    T(s, 'Без установки · в браузере · на ваших данных', { x: W - M - 3.2, y: 4.2, w: 3.0, h: 0.8, fontSize: 12, color: 'CADCFC', align: 'center' });
+  } else {
+    T(s, SITE, { x: M, y: 5.95, w: 7.5, h: 0.45, fontSize: 18, bold: true, color: '4C8DFF' });
+    T(s, 'Готовые ссылки: экспресс-оценка #/t/express?sample=cafe · универсальная модель #/t/project?sample=farm · документация и методика в репозитории GitHub', { x: M, y: 6.45, w: 7.8, h: 0.6, fontSize: 11, color: '8A96A3' });
+    // QR
+    const qrFile = path.join(process.env.TMPDIR || '/tmp', 'ipe-qr.png');
+    await QRCode.toFile(qrFile, SITE, { width: 600, margin: 1, color: { dark: '16202C', light: 'FFFFFF' } });
+    s.addShape(pres.ShapeType.roundRect, { x: W - M - 3.4, y: 1.6, w: 3.4, h: 4.3, fill: { color: 'FFFFFF' }, line: { color: 'FFFFFF' }, rectRadius: 0.15 });
+    s.addImage({ path: qrFile, x: W - M - 3.1, y: 1.8, w: 2.8, h: 2.8, objectName: 'QR-код сайта' });
+    T(s, 'Наведите камеру, чтобы открыть сервис', { x: W - M - 3.2, y: 4.7, w: 3.0, h: 0.5, fontSize: 13, bold: true, color: C.text1, align: 'center' });
+    T(s, 'Бесплатно · без регистрации', { x: W - M - 3.2, y: 5.2, w: 3.0, h: 0.4, fontSize: 12, color: C.text2, align: 'center' });
+  }
 }
 
 await pres.writeFile({ fileName: OUT });

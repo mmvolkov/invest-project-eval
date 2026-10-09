@@ -45,6 +45,10 @@ async function session(name, fn) {
     locale: 'ru-RU',
   });
   await ctx.addInitScript(CURSOR_SCRIPT);
+  // HIDE_LINKS=1 — вариант без ссылок: прячем панель настроек ИИ (адрес сервера) и ссылки в подвале сайдбара
+  if (process.env.HIDE_LINKS) {
+    await ctx.addInitScript(`document.addEventListener('DOMContentLoaded', () => { const st = document.createElement('style'); st.textContent = '.ai-settings{display:none !important} .sidebar-foot{display:none !important} .grid-cards a.card[href*=github]{display:none !important}'; document.head.appendChild(st); });`);
+  }
   const page = await ctx.newPage();
   page.on('pageerror', (e) => console.log('  pageerror:', e.message));
   page.on('requestfailed', (r) => console.log('  reqfailed:', r.url().slice(0, 120), r.failure()?.errorText));

@@ -424,6 +424,9 @@ CSS-переменные для светлой и тёмной темы (`prefer
 | `scripts/render-diagrams.mjs` | Рендерит `docs/diagrams/*.mmd` в `docs/img/*.png` через headless Chromium и mermaid 11 (масштаб 2×) |
 | `scripts/build-business-docx.mjs` | Собирает `docs/Описание_сервиса_для_бизнеса.docx` библиотекой docx.js со схемами |
 | `scripts/build-presentation.mjs` | Собирает `docs/Презентация_сервиса.pptx` библиотекой pptxgenjs (16 слайдов, тема, макеты TITLE/CONTENT/DARK, секции, QR-код на сайт). Использует схемы из `docs/img` и скриншоты живого сайта (каталог в `SHOTS`); модули берутся из `PPTX_MODULES` |
+| `scripts/video/record.mjs` | Playwright записывает сцены живого сайта (1920×1080, webm) с имитацией курсора и метками времени (`VID=<папка> node record.mjs [сцена]`); сцены: home, express, levels, risk, ai, export |
+| `scripts/video/script.json` | Сценарий видео: порядок сцен (слайд `s-NN.png` из `docs/Презентация_сервиса.pptx` или запись `demo`) и текст диктора |
+| `scripts/video/assemble.py` | Озвучка (`edge-tts`, голос ru-RU-DmitryNeural) уже лежит в `tts/`; скрипт собирает сегменты ffmpeg (слайд + озвучка, запись + озвучка с вырезанным ожиданием ответа ИИ), склеивает, накладывает субтитры ASS → `final.mp4` = `docs/Демонстрация_сервиса.mp4` |
 | `worker/ai-proxy.js`, `worker/wrangler.toml` | Cloudflare Worker: принимает `{ system, messages, model }`, добавляет серверный ключ, вызывает OpenAI-совместимый или Anthropic API, отдаёт `{ reply }` с CORS; опциональный `ACCESS_TOKEN` |
 | `docs/n8n-ai-assistant-workflow.json` | n8n: Webhook → Code → OpenAI → Respond to Webhook с тем же контрактом |
 | `package.json` | `npm test`, `npm run e2e`, `npm run serve` |

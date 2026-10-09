@@ -17,7 +17,7 @@ const { applyTheme } = require(path.join(root, "scripts/pptx-apply-theme.cjs"));
 
 const SHOTS = process.env.SHOTS || path.join(root, 'docs/img');
 const IMG = path.join(root, 'docs/img');
-const SITE = 'https://mmvolkov.github.io/invest-project-eval/';
+const SITE = 'https://scout-argument.ru/invest-project-eval/';
 const OUT = path.join(root, 'docs/Презентация_сервиса.pptx');
 
 const THEME = {
@@ -111,8 +111,8 @@ pres.addSection({ title: 'Проблема' });
   const s = pres.addSlide({ masterName: 'TITLE', sectionTitle: 'Проблема' });
   s.addText('Оценка инвестпроектов', { placeholder: 'title' });
   s.addText('Онлайн-сервис, который за минуту отвечает «окупится или нет», а при необходимости разворачивается в полную финансовую модель для банка и инвесткомитета.', { placeholder: 'body' });
-  s.addShape(pres.ShapeType.roundRect, { x: W - M - 3.0, y: 0.7, w: 3.0, h: 0.9, fill: { color: '1F2A3C' }, line: { color: '1F2A3C' }, rectRadius: 0.1 });
-  T(s, 'Бесплатно · без регистрации · в браузере', { x: W - M - 2.85, y: 0.7, w: 2.7, h: 0.9, fontSize: 12, color: 'CADCFC', valign: 'middle', align: 'center' });
+  s.addShape(pres.ShapeType.roundRect, { x: W - M - 3.9, y: 0.7, w: 3.9, h: 0.6, fill: { color: '1F2A3C' }, line: { color: '1F2A3C' }, rectRadius: 0.1 });
+  T(s, 'Бесплатно · без регистрации · в браузере', { x: W - M - 3.75, y: 0.7, w: 3.6, h: 0.6, fontSize: 12, color: 'CADCFC', valign: 'middle', align: 'center' });
   T(s, SITE, { x: M, y: 5.6, w: 8, h: 0.4, fontSize: 16, color: '4C8DFF' });
   T(s, 'Презентация для знакомства с сервисом · ' + new Date().toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }), { x: M, y: 6.1, w: 8, h: 0.4, fontSize: 12, color: '8A96A3' });
   s.addNotes('Титульный слайд. Деск предназначен для самостоятельного чтения.');

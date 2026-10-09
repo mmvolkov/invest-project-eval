@@ -67,6 +67,10 @@ npm run e2e           # сквозной тест в headless Chromium (нуже
    `BEGET_FTP_HOST`, `BEGET_FTP_USER`, `BEGET_FTP_PASSWORD`. Если FTP-аккаунт общий (корень в домашней
    папке), дополнительно задать переменную `BEGET_FTP_DIR`, например `scout-argument.ru/public_html/invest-project-eval/`.
 3. Служебные каталоги (`.github`, `tests`, `scripts`, `worker`) на сервер не копируются.
+4. Зеркало закрыто от поисковиков, чтобы не смешиваться с основным сайтом: шаг `Mark mirror as noindex`
+   добавляет в `index.html` тег `<meta name="robots" content="noindex, nofollow, noarchive">` и кладёт рядом
+   `.htaccess` с заголовком `X-Robots-Tag`. В `robots.txt` основного сайта ничего добавлять не нужно
+   (запрет обхода в `robots.txt` помешал бы роботу увидеть `noindex`). Копия на GitHub Pages не затрагивается.
 
 ### Cloudflare Pages (бесплатно, свой домен, быстрый CDN)
 

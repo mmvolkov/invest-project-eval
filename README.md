@@ -60,7 +60,7 @@ npm run e2e           # сквозной тест в headless Chromium (нуже
 
 Сайт статический, пути относительные, маршрутизация через `#`, поэтому он работает в любой
 подпапке без настройки сервера. Job `deploy-beget` в том же workflow при каждом пуше в `main`
-заливает файлы по FTPS (действие `SamKirkland/FTP-Deploy-Action`). Настройка:
+заливает файлы по FTP (действие `SamKirkland/FTP-Deploy-Action`). Настройка:
 
 1. В панели Beget создать FTP-аккаунт с домашней директорией `/scout-argument.ru/public_html/invest-project-eval`.
 2. В репозитории **Settings → Secrets and variables → Actions** добавить секреты

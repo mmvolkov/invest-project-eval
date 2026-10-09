@@ -1,4 +1,4 @@
-name: Tests & Deploy to GitHub Pages
+name: Tests & Deploy (GitHub Pages, Beget)
 
 on:
   push:
@@ -51,3 +51,45 @@ jobs:
           path: .
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # Зеркало на собственном хостинге (Beget) по FTPS: scout-argument.ru/invest-project-eval/
+  # Секреты репозитория: BEGET_FTP_HOST, BEGET_FTP_USER, BEGET_FTP_PASSWORD.
+  # Переменная BEGET_FTP_DIR (необязательно): каталог на сервере, по умолчанию корень FTP-аккаунта.
+  deploy-beget:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: beget
+      url: https://scout-argument.ru/invest-project-eval/
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inject AI config
+        env:
+          AI_PROVIDER: ${{ vars.AI_PROVIDER }}
+          AI_BASE_URL: ${{ vars.AI_BASE_URL }}
+          AI_MODEL: ${{ vars.AI_MODEL }}
+          AI_LABEL: ${{ vars.AI_LABEL }}
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+        run: node scripts/inject-ai-config.mjs
+      - name: Upload to Beget (FTPS)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.BEGET_FTP_HOST }}
+          username: ${{ secrets.BEGET_FTP_USER }}
+          password: ${{ secrets.BEGET_FTP_PASSWORD }}
+          protocol: ftps
+          security: loose
+          server-dir: ${{ vars.BEGET_FTP_DIR || './' }}
+          local-dir: ./
+          exclude: |
+            **/.git*
+            **/.git*/**
+            .github/**
+            node_modules/**
+            tests/**
+            scripts/**
+            worker/**
+            package.json
+            README.md
+            **/.DS_Store

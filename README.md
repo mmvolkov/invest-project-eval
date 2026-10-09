@@ -56,6 +56,18 @@ npm run e2e           # сквозной тест в headless Chromium (нуже
 2. Workflow [`.github/workflows/pages.yml`](.github/workflows/pages.yml) при каждом пуше в `main`
    прогоняет тесты и публикует сайт. Адрес: `https://<логин>.github.io/invest-project-eval/`.
 
+### Свой хостинг (Beget) — зеркало на scout-argument.ru/invest-project-eval
+
+Сайт статический, пути относительные, маршрутизация через `#`, поэтому он работает в любой
+подпапке без настройки сервера. Job `deploy-beget` в том же workflow при каждом пуше в `main`
+заливает файлы по FTPS (действие `SamKirkland/FTP-Deploy-Action`). Настройка:
+
+1. В панели Beget создать FTP-аккаунт с домашней директорией `/scout-argument.ru/public_html/invest-project-eval`.
+2. В репозитории **Settings → Secrets and variables → Actions** добавить секреты
+   `BEGET_FTP_HOST`, `BEGET_FTP_USER`, `BEGET_FTP_PASSWORD`. Если FTP-аккаунт общий (корень в домашней
+   папке), дополнительно задать переменную `BEGET_FTP_DIR`, например `scout-argument.ru/public_html/invest-project-eval/`.
+3. Служебные каталоги (`.github`, `tests`, `scripts`, `worker`) на сервер не копируются.
+
 ### Cloudflare Pages (бесплатно, свой домен, быстрый CDN)
 
 Pages → Create project → подключить репозиторий → *Framework preset: None*, *Build command:*

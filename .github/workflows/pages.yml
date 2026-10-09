@@ -72,6 +72,13 @@ jobs:
           AI_LABEL: ${{ vars.AI_LABEL }}
           AI_API_KEY: ${{ secrets.AI_API_KEY }}
         run: node scripts/inject-ai-config.mjs
+      # Зеркало на scout-argument.ru не должно индексироваться вместе с основным сайтом:
+      # meta robots в index.html + заголовок X-Robots-Tag через .htaccess (только для копии на Beget).
+      - name: Mark mirror as noindex
+        run: |
+          sed -i 's|<meta name="viewport"|<meta name="robots" content="noindex, nofollow, noarchive" />\n<meta name="viewport"|' index.html
+          grep -q 'name="robots"' index.html
+          printf '<IfModule mod_headers.c>\n  Header set X-Robots-Tag "noindex, nofollow, noarchive"\n</IfModule>\n' > .htaccess
       - name: Upload to Beget (FTP)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:

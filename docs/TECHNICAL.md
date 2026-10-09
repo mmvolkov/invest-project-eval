@@ -423,6 +423,7 @@ CSS-переменные для светлой и тёмной темы (`prefer
 | `scripts/inject-ai-config.mjs` | Читает `AI_*` из окружения, валидирует провайдера, перезаписывает `src/ai/config.js`. Пустые переменные не меняют значения по умолчанию |
 | `scripts/render-diagrams.mjs` | Рендерит `docs/diagrams/*.mmd` в `docs/img/*.png` через headless Chromium и mermaid 11 (масштаб 2×) |
 | `scripts/build-business-docx.mjs` | Собирает `docs/Описание_сервиса_для_бизнеса.docx` библиотекой docx.js со схемами |
+| `scripts/build-presentation.mjs` | Собирает `docs/Презентация_сервиса.pptx` библиотекой pptxgenjs (16 слайдов, тема, макеты TITLE/CONTENT/DARK, секции, QR-код на сайт). Использует схемы из `docs/img` и скриншоты живого сайта (каталог в `SHOTS`); модули берутся из `PPTX_MODULES` |
 | `worker/ai-proxy.js`, `worker/wrangler.toml` | Cloudflare Worker: принимает `{ system, messages, model }`, добавляет серверный ключ, вызывает OpenAI-совместимый или Anthropic API, отдаёт `{ reply }` с CORS; опциональный `ACCESS_TOKEN` |
 | `docs/n8n-ai-assistant-workflow.json` | n8n: Webhook → Code → OpenAI → Respond to Webhook с тем же контрактом |
 | `package.json` | `npm test`, `npm run e2e`, `npm run serve` |

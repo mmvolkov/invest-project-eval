@@ -13,6 +13,7 @@ import { PROVIDERS, DEFAULT_AI_SETTINGS, chat } from './ai/providers.js';
 import { DEFAULT_AI_CONFIG } from './ai/config.js';
 import { askAssistant, applyActions, QUICK_PROMPTS } from './ai/assistant.js';
 import { expertReview } from './ai/expert.js';
+import { startDemo, armIdleDemo, isDemoRunning } from './ui/demo.js';
 
 const LS = {
   get(key, def) {
@@ -801,19 +802,74 @@ function applyTheme() {
   else document.documentElement.setAttribute('data-theme', t);
 }
 
+/* ---------- Демо-режим: снимок и восстановление данных пользователя ---------- */
+const DEMO_HOOKS = {
+  onStart() {
+    const inputs = {};
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('ipe:inputs:')) inputs[k] = localStorage.getItem(k);
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return { inputs, level: state.level, hash: location.hash, history: state.ai.history.slice(), lastConclusion: state.ai.lastConclusion, analysis: deepClone(state.analysis) };
+  },
+  onStop(snap, reason) {
+    if (!snap) return;
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('ipe:inputs:')) localStorage.removeItem(k);
+      }
+      for (const [k, v] of Object.entries(snap.inputs)) localStorage.setItem(k, v);
+    } catch (e) {
+      /* ignore */
+    }
+    state.level = snap.level;
+    LS.set('ipe:level', snap.level);
+    state.ai.history = snap.history;
+    state.ai.lastConclusion = snap.lastConclusion;
+    state.analysis = snap.analysis;
+    state.templateId = null; // заставить openTemplate перечитать сохранённые данные
+    state.template = null;
+    if (reason === 'finished') {
+      navigate(snap.hash || '#/');
+      toast('Демонстрация завершена, ваши данные восстановлены');
+    } else {
+      navigate(location.hash.replace(/[?&](sample|level)=[^&]*/g, '').replace(/^(#\/t\/[^?&]+)&/, '$1?'));
+      toast('Показ остановлен, ваши данные восстановлены');
+    }
+  },
+};
+
 /* ---------- Инициализация ---------- */
 function init() {
   applyTheme();
   $('#search').addEventListener('input', renderCatalog);
   $('#menuBtn').addEventListener('click', () => $('#sidebar').classList.toggle('open'));
   $('#settingsBtn').addEventListener('click', openSettings);
+  // Одиночный клик — вкладка ассистента (с задержкой, чтобы отличить от двойного); двойной клик — демо-режим
+  let aiClickTimer = null;
   $('#aiBtn').addEventListener('click', () => {
-    if (!state.template) navigate('#/t/express?sample=cafe&tab=ai');
-    else {
-      state.tab = 'ai';
-      renderWorkspace();
-    }
+    clearTimeout(aiClickTimer);
+    aiClickTimer = setTimeout(() => {
+      if (isDemoRunning()) return;
+      if (!state.template) navigate('#/t/express?sample=cafe&tab=ai');
+      else {
+        state.tab = 'ai';
+        renderWorkspace();
+      }
+    }, 280);
   });
+  $('#aiBtn').addEventListener('dblclick', (e) => {
+    e.preventDefault();
+    clearTimeout(aiClickTimer);
+    startDemo(DEMO_HOOKS);
+  });
+  // Автозапуск демо после 30 с бездействия (один раз за сессию, только на главной)
+  armIdleDemo(30000, { ...DEMO_HOOKS, canStart: () => !state.template && $('#modal').classList.contains('hidden') });
   window.addEventListener('hashchange', route);
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeModal();

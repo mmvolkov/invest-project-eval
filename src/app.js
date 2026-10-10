@@ -868,8 +868,8 @@ function init() {
     clearTimeout(aiClickTimer);
     startDemo(DEMO_HOOKS);
   });
-  // Автозапуск демо после 30 с бездействия (один раз за сессию, только на главной)
-  armIdleDemo(30000, { ...DEMO_HOOKS, canStart: () => !state.template && $('#modal').classList.contains('hidden') });
+  // Автозапуск демо после 5 с бездействия (один раз за сессию, только на главной)
+  armIdleDemo(5000, { ...DEMO_HOOKS, canStart: () => !state.template && $('#modal').classList.contains('hidden') });
   window.addEventListener('hashchange', route);
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeModal();

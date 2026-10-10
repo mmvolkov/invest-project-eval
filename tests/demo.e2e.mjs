@@ -29,8 +29,8 @@ const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
 
 // 1. Автозапуск по бездействию (30 с)
 await page.goto('http://app.local/#/', { waitUntil: 'networkidle' });
-await page.waitForTimeout(20000);
-log('after 20s, demo bar:', !!(await page.$('.demo-bar')));
+await page.waitForTimeout(3000);
+log("after 3s, demo bar:", !!(await page.$('.demo-bar')));
 await page.waitForSelector('.demo-bar', { timeout: 15000 });
 log('idle demo started');
 let last = '';

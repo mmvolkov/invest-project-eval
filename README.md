@@ -117,7 +117,7 @@ Tilda не выполняет модули и внешние скрипты вн
 
 По умолчанию ассистент ходит на **прокси [`api/ai.php`](api/ai.php)**, который лежит на хостинге сайта
 (Beget, `https://scout-argument.ru/invest-project-eval/api/ai.php`). Прокси хранит ключ учебного
-OpenAI-совместимого сервера `https://hr-assistant.pro6000.cloudsmasters.ru/api/v1` (vLLM, модель
+OpenAI-совместимого сервера `https://api.pro6000.cloudsmasters.ru/v1` (vLLM, модель
 `qwen3.8-27b-nvfp4`) у себя, добавляет его к запросу и возвращает `{ "reply": "…" }`. Напрямую из
 браузера этот сервер недоступен: он требует ключ и отвечает 401 на preflight-запрос CORS.
 Копия сайта на GitHub Pages тоже пользуется этим прокси (её домен есть в списке разрешённых Origin).

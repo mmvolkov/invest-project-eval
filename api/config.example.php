@@ -7,7 +7,7 @@
  */
 return [
   'PROVIDER_KEY' => '',                                                  // ключ OpenAI-совместимого API
-  'BASE_URL' => 'https://hr-assistant.pro6000.cloudsmasters.ru/api/v1',  // адрес API без /chat/completions
+  'BASE_URL' => 'https://api.pro6000.cloudsmasters.ru/v1',  // адрес API без /chat/completions
   'MODEL' => 'qwen3.8-27b-nvfp4',
   'ALLOWED_ORIGINS' => ['https://scout-argument.ru', 'https://mmvolkov.github.io'],
   'RATE_LIMIT' => 40,     // запросов с одного IP за RATE_WINDOW секунд

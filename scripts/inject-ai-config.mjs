@@ -2,7 +2,12 @@
  * Перезаписывает src/ai/config.js значениями из переменных окружения (используется в деплое).
  * Пустые переменные не трогают значения по умолчанию из текущего файла.
  *
- *   AI_PROVIDER=webhook AI_BASE_URL=https://my-proxy.workers.dev AI_API_KEY=... node scripts/inject-ai-config.mjs
+ *   AI_PROVIDER=webhook AI_BASE_URL=https://my-proxy.workers.dev AI_BROWSER_API_KEY=... node scripts/inject-ai-config.mjs
+ *
+ * Внимание: всё, что попадает в src/ai/config.js, видно любому посетителю сайта. Поэтому сюда идёт только
+ * AI_BROWSER_API_KEY (токен для браузера, например ACCESS_TOKEN воркера или тестовый ключ с лимитами).
+ * Секрет AI_API_KEY (ключ модели) этот скрипт намеренно не читает: он нужен только серверному прокси
+ * api/ai.php (scripts/write-ai-proxy-config.mjs).
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -17,7 +22,7 @@ const cfg = {
   provider: env('AI_PROVIDER') || DEFAULT_AI_CONFIG.provider,
   baseUrl: env('AI_BASE_URL') || DEFAULT_AI_CONFIG.baseUrl,
   model: env('AI_MODEL') || DEFAULT_AI_CONFIG.model,
-  apiKey: env('AI_API_KEY') || DEFAULT_AI_CONFIG.apiKey,
+  apiKey: env('AI_BROWSER_API_KEY') || DEFAULT_AI_CONFIG.apiKey,
   label: env('AI_LABEL') || DEFAULT_AI_CONFIG.label,
 };
 if (!['openai', 'anthropic', 'webhook'].includes(cfg.provider)) throw new Error(`Неизвестный AI_PROVIDER: ${cfg.provider}`);

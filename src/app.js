@@ -42,8 +42,21 @@ const state = {
   tab: 'inputs',
   result: null,
   analysis: {},
-  ai: { settings: { ...DEFAULT_AI_SETTINGS, ...DEFAULT_AI_CONFIG, ...LS.get('ipe:ai', {}) }, history: [], lastConclusion: '' },
+  ai: { settings: { ...DEFAULT_AI_SETTINGS, ...DEFAULT_AI_CONFIG, ...migrateAiSettings(LS.get('ipe:ai', {})) }, history: [], lastConclusion: '' },
 };
+
+/**
+ * Сохранённые в браузере настройки ИИ из прежних версий сайта указывали напрямую на учебный сервер
+ * cloudsmasters с ключом-заглушкой. Сервер больше не принимает такие запросы из браузера, поэтому
+ * старые настройки сбрасываем на подключение по умолчанию (через прокси сайта). Свои ключи не трогаем.
+ */
+function migrateAiSettings(saved) {
+  if (!saved || typeof saved !== 'object') return {};
+  const stale = saved.provider === 'openai' && /\.cloudsmasters\.ru/.test(saved.baseUrl || '') && (!saved.apiKey || saved.apiKey === 'dummy-key');
+  if (!stale) return saved;
+  LS.set('ipe:ai', {});
+  return {};
+}
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const main = $('#main');

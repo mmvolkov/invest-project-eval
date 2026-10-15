@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const env = (k, d = '') => (process.env[k] || '').trim() || d;
 const key = env('AI_API_KEY');
-const baseUrl = env('AI_PROXY_BASE_URL', 'https://hr-assistant.pro6000.cloudsmasters.ru/api/v1');
+const baseUrl = env('AI_PROXY_BASE_URL', 'https://api.pro6000.cloudsmasters.ru/v1');
 const model = env('AI_MODEL', 'qwen3.8-27b-nvfp4');
 const origins = env('AI_PROXY_ORIGINS', 'https://scout-argument.ru,https://mmvolkov.github.io')
   .split(',')

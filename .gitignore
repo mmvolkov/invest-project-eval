@@ -4,3 +4,4 @@ e2e-*.png
 .DS_Store
 .demo-shots/
 .etc/
+api/config.php

@@ -35,13 +35,14 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Inject AI config (vars.AI_PROVIDER / AI_BASE_URL / AI_MODEL / AI_LABEL, secrets.AI_API_KEY)
+      # Ключ модели (secrets.AI_API_KEY) в браузер не попадает: он нужен только прокси api/ai.php на Beget (job deploy-beget)
+      - name: Inject AI config (vars.AI_PROVIDER / AI_BASE_URL / AI_MODEL / AI_LABEL, secrets.AI_BROWSER_API_KEY)
         env:
           AI_PROVIDER: ${{ vars.AI_PROVIDER }}
           AI_BASE_URL: ${{ vars.AI_BASE_URL }}
           AI_MODEL: ${{ vars.AI_MODEL }}
           AI_LABEL: ${{ vars.AI_LABEL }}
-          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_BROWSER_API_KEY: ${{ secrets.AI_BROWSER_API_KEY }}
         run: node scripts/inject-ai-config.mjs
       - uses: actions/configure-pages@v5
         with:
@@ -70,7 +71,7 @@ jobs:
           AI_BASE_URL: ${{ vars.AI_BASE_URL }}
           AI_MODEL: ${{ vars.AI_MODEL }}
           AI_LABEL: ${{ vars.AI_LABEL }}
-          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_BROWSER_API_KEY: ${{ secrets.AI_BROWSER_API_KEY }}
         run: node scripts/inject-ai-config.mjs
       # Зеркало на scout-argument.ru не должно индексироваться вместе с основным сайтом:
       # meta robots в index.html + заголовок X-Robots-Tag через .htaccess (только для копии на Beget).
@@ -79,6 +80,14 @@ jobs:
           sed -i 's|<meta name="viewport"|<meta name="robots" content="noindex, nofollow, noarchive" />\n<meta name="viewport"|' index.html
           grep -q 'name="robots"' index.html
           printf '<IfModule mod_headers.c>\n  Header set X-Robots-Tag "noindex, nofollow, noarchive"\n</IfModule>\n' > .htaccess
+      # Прокси ИИ api/ai.php читает ключ из api/config.php; файл создаётся здесь из секрета и в git не попадает
+      - name: Write AI proxy config (secrets.AI_API_KEY, vars.AI_PROXY_BASE_URL / AI_MODEL / AI_PROXY_ORIGINS)
+        env:
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_PROXY_BASE_URL: ${{ vars.AI_PROXY_BASE_URL }}
+          AI_MODEL: ${{ vars.AI_MODEL }}
+          AI_PROXY_ORIGINS: ${{ vars.AI_PROXY_ORIGINS }}
+        run: node scripts/write-ai-proxy-config.mjs
       - name: Upload to Beget (FTP)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:

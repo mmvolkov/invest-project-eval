@@ -391,7 +391,7 @@ CSS-переменные для светлой и тёмной темы (`prefer
 
 ### 9.4. `config.js`
 
-`DEFAULT_AI_CONFIG` — подключение по умолчанию для всех посетителей (сейчас учебный OpenAI-совместимый сервер с моделью `qwen3.8-27b-nvfp4`, ключ-заглушка). Перезаписывается при деплое скриптом `scripts/inject-ai-config.mjs` из переменных `AI_PROVIDER`, `AI_BASE_URL`, `AI_MODEL`, `AI_LABEL` и секрета `AI_API_KEY`. Пользовательские настройки из localStorage имеют приоритет; кнопка «↺ По умолчанию» возвращает конфиг.
+`DEFAULT_AI_CONFIG` — подключение по умолчанию для всех посетителей: провайдер `webhook`, адрес `https://scout-argument.ru/invest-project-eval/api/ai.php` (PHP-прокси на хостинге сайта, раздел 9.7), модель `qwen3.8-27b-nvfp4`, ключа в браузере нет. Перезаписывается при деплое скриптом `scripts/inject-ai-config.mjs` из переменных `AI_PROVIDER`, `AI_BASE_URL`, `AI_MODEL`, `AI_LABEL` и секрета `AI_BROWSER_API_KEY` (секрет `AI_API_KEY` с ключом модели скрипт намеренно не читает: он виден был бы всем посетителям). Пользовательские настройки из localStorage имеют приоритет; кнопка «↺ По умолчанию» возвращает конфиг.
 
 ---
 
@@ -425,6 +425,19 @@ CSS-переменные для светлой и тёмной темы (`prefer
 | Оформление | Классы `.demo-cursor`, `.demo-ripple`, `.demo-bar` в `styles.css`; подпись на тёмной подложке, прогресс-полоса, адаптация под мобильные |
 | Проверка | Сценарий `tests/demo.e2e.mjs` (`node tests/demo.e2e.mjs`, около 4 минут): автозапуск через 5 с на главной, полный прогон 16 шагов с реальным ответом ИИ и применением изменений, запуск двойным кликом, остановка движением мыши, восстановление введённого пользователем значения |
 
+### 9.7. Прокси ИИ на хостинге: `api/ai.php`
+
+Сервер модели по умолчанию (`hr-assistant.pro6000.cloudsmasters.ru`) требует ключ и отвечает 401 на preflight-запрос `OPTIONS`, поэтому обращаться к нему из браузера нельзя. Между сайтом и моделью стоит небольшой PHP-прокси, который публикуется вместе с зеркалом на Beget и доступен обеим копиям сайта.
+
+| Аспект | Реализация |
+|---|---|
+| Контракт | `POST { system, messages[], context, model }` → `{ reply, model, usage }`; тот же, что у Worker и n8n (провайдер `webhook` в `providers.js`) |
+| Настройки | `api/config.php` (в git не попадает, `.gitignore`): `PROVIDER_KEY`, `BASE_URL`, `MODEL`, `ALLOWED_ORIGINS`, `RATE_LIMIT`/`RATE_WINDOW`, `MAX_TOKENS`, `TIMEOUT`. Образец: `api/config.example.php`. При деплое создаётся скриптом `scripts/write-ai-proxy-config.mjs` из секрета `AI_API_KEY` и переменных `AI_PROXY_BASE_URL`, `AI_MODEL`, `AI_PROXY_ORIGINS` |
+| CORS | `Access-Control-Allow-Origin` только для доменов из `ALLOWED_ORIGINS` (по умолчанию `scout-argument.ru` и `mmvolkov.github.io`), `OPTIONS` → 204, чужой Origin → 403, не-POST → 405 |
+| Защита | Лимит 40 запросов за 10 минут с одного IP (счётчик в файлах temp-каталога), тело до 300 КБ, история до 20 последних сообщений, `max_tokens` 2000, таймаут 120 с; пустой ключ → 503 с понятным текстом |
+| Вызов модели | `curl` к `BASE_URL/chat/completions` с `Authorization: Bearer <ключ>`; ответ сервера возвращается как `{ reply }`, ошибки апстрима пробрасываются с кодом и текстом |
+| Проверка | Локально: `php -S 127.0.0.1:8099 -t .` в каталоге с `api/`, затем `OPTIONS`/`POST` через curl или сайт с настройкой провайдера `webhook` → `http://127.0.0.1:8099/api/ai.php` (локальный Origin нужно добавить в `ALLOWED_ORIGINS`) |
+
 ---
 
 ## 10. Инфраструктура и скрипты
@@ -435,8 +448,10 @@ CSS-переменные для светлой и тёмной темы (`prefer
 
 | Файл | Назначение |
 |---|---|
-| `.github/workflows/pages.yml` | На push в `main` и в PR: job `test` (`node --test tests/*.test.mjs`); на `main` дополнительно job `deploy`: подстановка конфига ИИ, `configure-pages` (с `enablement: true`), загрузка корня репозитория как артефакта, `deploy-pages`. Требует Settings → Pages → Source: GitHub Actions |
-| `scripts/inject-ai-config.mjs` | Читает `AI_*` из окружения, валидирует провайдера, перезаписывает `src/ai/config.js`. Пустые переменные не меняют значения по умолчанию |
+| `.github/workflows/pages.yml` | На push в `main` и в PR: job `test` (`node --test tests/*.test.mjs`); на `main` дополнительно job `deploy`: подстановка конфига ИИ, `configure-pages` (с `enablement: true`), загрузка корня репозитория как артефакта, `deploy-pages` (требует Settings → Pages → Source: GitHub Actions); и job `deploy-beget`: подстановка конфига ИИ, пометка зеркала `noindex` (meta robots + `.htaccess`), запись `api/config.php` из секрета `AI_API_KEY`, загрузка по FTP (`SamKirkland/FTP-Deploy-Action`, секреты `BEGET_FTP_*`, переменная `BEGET_FTP_DIR`) без служебных каталогов |
+| `scripts/inject-ai-config.mjs` | Читает `AI_*` из окружения (ключ только из `AI_BROWSER_API_KEY`), валидирует провайдера, перезаписывает `src/ai/config.js`. Пустые переменные не меняют значения по умолчанию |
+| `scripts/write-ai-proxy-config.mjs` | Создаёт `api/config.php` для прокси ИИ из `AI_API_KEY`, `AI_PROXY_BASE_URL`, `AI_MODEL`, `AI_PROXY_ORIGINS`; без ключа предупреждает, что прокси будет отвечать 503 |
+| `api/ai.php`, `api/config.example.php` | PHP-прокси ИИ на хостинге сайта (раздел 9.7) и образец его настроек |
 | `scripts/render-diagrams.mjs` | Рендерит `docs/diagrams/*.mmd` в `docs/img/*.png` через headless Chromium и mermaid 11 (масштаб 2×) |
 | `scripts/build-business-docx.mjs` | Собирает `docs/Описание_сервиса_для_бизнеса.docx` библиотекой docx.js со схемами |
 | `scripts/build-presentation.mjs` | Собирает `docs/Презентация_сервиса.pptx` библиотекой pptxgenjs (16 слайдов, тема, макеты TITLE/CONTENT/DARK, секции, QR-код на сайт). Использует схемы из `docs/img` и скриншоты живого сайта (каталог в `SHOTS`); модули берутся из `PPTX_MODULES` |
@@ -478,7 +493,11 @@ node tests/e2e.mjs https://mmvolkov.github.io/invest-project-eval   # e2e на �
 
 **Tilda / любой сайт.** Блок HTML с `<iframe src="…/#/t/express?sample=cafe">`. Ссылки на конкретный шаблон и пример: `#/t/<id>?sample=<sampleId>&level=<express|basic|pro>&tab=<inputs|results|…>`.
 
-**Смена модели ИИ по умолчанию.** Variables `AI_PROVIDER`, `AI_BASE_URL`, `AI_MODEL`, `AI_LABEL`, Secret `AI_API_KEY` в Settings → Secrets and variables → Actions; затем push или Re-run workflow. Для боевого ключа — Worker (`wrangler secret put PROVIDER_KEY`, `wrangler deploy`) и `AI_PROVIDER=webhook`.
+**Зеркало на Beget.** Секреты `BEGET_FTP_HOST`, `BEGET_FTP_USER`, `BEGET_FTP_PASSWORD`, при необходимости переменная `BEGET_FTP_DIR`; адрес `https://scout-argument.ru/invest-project-eval/`, закрыт от индексации.
+
+**Ключ модели для ассистента.** Secret `AI_API_KEY` в Settings → Secrets and variables → Actions (плюс необязательные Variables `AI_PROXY_BASE_URL`, `AI_MODEL`, `AI_PROXY_ORIGINS`); затем push или Re-run workflow — деплой на Beget создаст `api/config.php`. Проверка: `curl -i -X OPTIONS -H 'Origin: https://scout-argument.ru' https://scout-argument.ru/invest-project-eval/api/ai.php` → 204 с `Access-Control-Allow-Origin`; без ключа `POST` отвечает 503.
+
+**Смена подключения по умолчанию в браузере.** Variables `AI_PROVIDER`, `AI_BASE_URL`, `AI_MODEL`, `AI_LABEL`, Secret `AI_BROWSER_API_KEY` (только то, что можно показать посетителю); затем push или Re-run workflow. Альтернативы PHP-прокси: Worker (`wrangler secret put PROVIDER_KEY`, `wrangler deploy`) или n8n-вебхук с `AI_PROVIDER=webhook`.
 
 **Локальная разработка.** `npx serve .` (или любой статический сервер), ES-модули требуют http(s), не `file://`.
 

@@ -3,3 +3,4 @@ e2e-export.*
 e2e-*.png
 .DS_Store
 .demo-shots/
+.etc/

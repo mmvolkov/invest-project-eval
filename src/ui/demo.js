@@ -302,6 +302,25 @@ const STEPS = [
     },
   },
   {
+    text: 'Отчёт для собственника: экономическая добавленная стоимость EVA. Из отчёта о прибылях и баланса сервис считает NOPAT, инвестированный капитал, WACC и показывает, создаёт ли бизнес стоимость сверх платы за капитал.',
+    run: async () => {
+      await go('#/t/eva?sample=excel&level=pro&tab=results');
+      await moveTo(await waitFor(SEL.kpis));
+      await pause(4500);
+    },
+  },
+  {
+    text: 'Корректировки по методике Stern Stewart, факторный анализ: что изменило EVA, капитал, рентабельность или стоимость капитала. Плюс оценка бизнеса дисконтированной EVA.',
+    run: async () => {
+      const ch = $(SEL.charts);
+      if (ch) await scrollTo(ch, 'start');
+      await pause(3500);
+      const f = $('#factors') || $('#charts canvas:last-of-type');
+      if (f) await moveTo(f);
+      await pause(3000);
+    },
+  },
+  {
     text: 'Демонстрация завершена. Попробуйте сами: выберите шаблон слева, подставьте свои цифры и скачайте отчёт.',
     run: async () => {
       await pause(5000);

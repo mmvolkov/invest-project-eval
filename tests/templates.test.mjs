@@ -58,3 +58,43 @@ test('бюджет fd.ru: баланс сходится', () => {
   const res = tpl.compute(deepClone(tpl.samples[0].inputs));
   assert.equal(res.kpis.find((k) => k.label === 'Баланс сходится').value, 1);
 });
+
+test('EVA: пример «Гамма» из статьи Системы «Финансовый директор» (EVA = NOPAT − IC × WACC)', () => {
+  const tpl = TEMPLATES.find((t) => t.id === 'eva');
+  const s = tpl.samples.find((x) => x.id === 'gamma');
+  const r = tpl.compute(deepClone(s.inputs));
+  const expected = [581712, 3970185, 3582666, 7439188, 13389604];
+  // в статье WACC округлён до сотых процента, поэтому допуск 0,02 % от значения
+  r.series.eva.forEach((v, t) => assert.ok(Math.abs(v - expected[t]) < 0.0002 * expected[t] + 2, `EVA год ${t + 1}: ${v} vs ${expected[t]}`));
+  assert.equal(r.kpis[0].good, true);
+  const f = r.tables.find((t) => t.id === 'factors');
+  assert.ok(f && f.rows.length === 4);
+  for (const row of f.rows) assert.ok(Math.abs(row.cells[1] + row.cells[2] + row.cells[3] + row.cells[4] - row.cells[5]) < 1e-6, 'факторы сходятся к EVA отчётного года');
+});
+
+test('EVA: пример из Excel-модели методики сходится с рассчитанными в Excel значениями', () => {
+  const tpl = TEMPLATES.find((t) => t.id === 'eva');
+  const s = tpl.samples.find((x) => x.id === 'excel');
+  const r = tpl.compute(tpl.normalize(deepClone(s.inputs)));
+  const close = (a, b, eps, msg) => assert.ok(Math.abs(a - b) <= eps, `${msg}: ${a} vs ${b}`);
+  const nopat = [88912, 80256, 73024, 68992, 62344];
+  const ic = [253150, 327950, 389950, 455750, 508900];
+  const wacc = [0.12218181818, 0.12179775281, 0.11847619048, 0.11671232877, 0.11653846154];
+  const eva = [57981.6727, 40312.427, 26824.2095, 15800.3562, 3037.5769];
+  r.series.nopat.forEach((v, t) => close(v, nopat[t], 0.5, `NOPAT ${t}`));
+  r.series.icAvg.forEach((v, t) => close(v, ic[t], 0.5, `IC ${t}`));
+  r.series.wacc.forEach((v, t) => close(v, wacc[t], 1e-6, `WACC ${t}`));
+  r.series.eva.forEach((v, t) => close(v, eva[t], 0.5, `EVA ${t}`));
+  const icTable = r.tables.find((t) => t.id === 'ic');
+  close(icTable.rows[3].cells[6], 531100, 0.5, 'IC на конец 2023');
+  assert.ok(r.tables.find((t) => t.id === 'valuation'));
+});
+
+test('EVA: стандартный налоговый щит только по долгу даёт более высокий WACC, чем вариант Excel', () => {
+  const tpl = TEMPLATES.find((t) => t.id === 'eva');
+  const s = tpl.samples.find((x) => x.id === 'excel');
+  const a = tpl.compute({ ...deepClone(s.inputs), taxShield: 'debt' });
+  const b = tpl.compute({ ...deepClone(s.inputs), taxShield: 'all' });
+  assert.ok(a.series.wacc[0] > b.series.wacc[0]);
+  assert.ok(Math.abs(a.series.wacc[0] - (0.2727272727 * 0.16 * 0.8 + 0.7272727273 * 0.15)) < 1e-6);
+});

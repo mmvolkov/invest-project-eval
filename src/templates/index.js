@@ -6,6 +6,7 @@
 import { projectTemplate, expressTemplate } from './project.js';
 import { waccTemplate, loanTemplate, leasingTemplate, compareTemplate } from './invest_tools.js';
 import { breakevenTemplate, factorTemplate, planfactTemplate, ratiosTemplate, budgetTemplate, valuationTemplate } from './analysis_tools.js';
+import { evaTemplate } from './eva.js';
 
 export const CATEGORIES = [
   { id: 'invest', title: 'Инвестиции', icon: '📈', description: 'Расчёт и анализ инвестиционных показателей' },
@@ -20,7 +21,7 @@ export const LEVELS = [
   { id: 'pro', title: 'Расширенная', rank: 2, description: 'Кредиты, оборотный капитал, терминальная стоимость, Монте-Карло' },
 ];
 
-export const TEMPLATES = [expressTemplate, projectTemplate, compareTemplate, waccTemplate, loanTemplate, leasingTemplate, breakevenTemplate, factorTemplate, planfactTemplate, budgetTemplate, valuationTemplate, ratiosTemplate];
+export const TEMPLATES = [expressTemplate, projectTemplate, compareTemplate, waccTemplate, loanTemplate, leasingTemplate, breakevenTemplate, factorTemplate, planfactTemplate, budgetTemplate, valuationTemplate, evaTemplate, ratiosTemplate];
 
 export function getTemplate(id) {
   return TEMPLATES.find((t) => t.id === id) || null;

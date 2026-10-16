@@ -76,6 +76,21 @@ npm run e2e           # сквозной тест в headless Chromium (нуже
 5. Прокси ИИ `api/ai.php` работает на PHP хостинга; его ключ берётся из секрета `AI_API_KEY`
    (см. раздел «Модель по умолчанию для всех посетителей»).
 
+### Страница-каталог AI-сервисов: scout-argument.ru/ai-assistants
+
+Исходник страницы лежит в `pages/ai-assistants/index.html` (каталог сервисов с фильтром и поиском;
+список сервисов правится в массиве `SERVICES` внутри файла). На GitHub Pages и в зеркало сервиса она
+не попадает: её публикует отдельный job `deploy-ai-assistants`, который включается переменной
+`BEGET_AI_ASSISTANTS_DIR` (Settings → Secrets and variables → Actions → Variables). Два варианта настройки:
+
+| Вариант | Что сделать в Beget | Что задать в GitHub |
+|---|---|---|
+| Один FTP-аккаунт на весь сайт | Домашняя папка FTP-аккаунта: `/scout-argument.ru/public_html` | Variables: `BEGET_FTP_DIR=invest-project-eval/`, `BEGET_AI_ASSISTANTS_DIR=ai-assistants/` |
+| Отдельный FTP-аккаунт для страницы | Новый FTP-аккаунт с домашней папкой `/scout-argument.ru/public_html/ai-assistants` | Secrets: `BEGET_FTP_AI_USER`, `BEGET_FTP_AI_PASSWORD`; Variable: `BEGET_AI_ASSISTANTS_DIR=./` |
+
+Пока переменная не задана, job пропускается. Страница помечена `noindex`, а `robots.txt` основного сайта
+и так закрывает всё, кроме главной и `/app/`.
+
 ### Cloudflare Pages (бесплатно, свой домен, быстрый CDN)
 
 Pages → Create project → подключить репозиторий → *Framework preset: None*, *Build command:*

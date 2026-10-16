@@ -44,6 +44,9 @@ jobs:
           AI_LABEL: ${{ vars.AI_LABEL }}
           AI_BROWSER_API_KEY: ${{ secrets.AI_BROWSER_API_KEY }}
         run: node scripts/inject-ai-config.mjs
+      # Страницы из pages/ публикуются только на Beget (job deploy-ai-assistants), на GitHub Pages им делать нечего
+      - name: Drop Beget-only pages
+        run: rm -rf pages
       - uses: actions/configure-pages@v5
         with:
           enablement: true
@@ -105,6 +108,34 @@ jobs:
             tests/**
             scripts/**
             worker/**
+            pages/**
             package.json
             README.md
+            **/.DS_Store
+
+  # Страница-каталог AI-сервисов: scout-argument.ru/ai-assistants/ (исходник pages/ai-assistants/).
+  # Включается переменной BEGET_AI_ASSISTANTS_DIR — путь к папке ai-assistants от корня FTP-аккаунта
+  # (например, ai-assistants/ если домашняя папка аккаунта — public_html, или ./ для отдельного
+  # FTP-аккаунта с домашней папкой /scout-argument.ru/public_html/ai-assistants). Если для страницы
+  # заведён отдельный FTP-аккаунт, его логин и пароль — секреты BEGET_FTP_AI_USER и BEGET_FTP_AI_PASSWORD;
+  # иначе используются BEGET_FTP_USER / BEGET_FTP_PASSWORD.
+  deploy-ai-assistants:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.BEGET_AI_ASSISTANTS_DIR != ''
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: beget-ai-assistants
+      url: https://scout-argument.ru/ai-assistants/
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload ai-assistants page to Beget (FTP)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.BEGET_FTP_HOST }}
+          username: ${{ secrets.BEGET_FTP_AI_USER || secrets.BEGET_FTP_USER }}
+          password: ${{ secrets.BEGET_FTP_AI_PASSWORD || secrets.BEGET_FTP_PASSWORD }}
+          protocol: ftp
+          server-dir: ${{ vars.BEGET_AI_ASSISTANTS_DIR }}
+          local-dir: ./pages/ai-assistants/
+          exclude: |
             **/.DS_Store

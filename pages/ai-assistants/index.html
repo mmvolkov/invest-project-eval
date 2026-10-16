@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI-сервисы</title>
-<meta name="description" content="Единая точка входа в AI-сервисы для продаж и работы с корпоративными знаниями">
 <meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="description" content="Портфель внедрённых AI-решений для продаж, HR, юристов, финансов и работы со знаниями компании">
 </head>
 <body style="margin:0;background:#f9fafb">
 
@@ -181,8 +181,8 @@
 <div class="hero" id="aip-top">
   <div class="wrap">
     <span class="eyebrow">Единая точка входа</span>
-    <h1>AI-сервисы для <em>продаж</em> и&nbsp;работы со&nbsp;знаниями компании</h1>
-    <p class="lead">Ответы по регламентам, карточка встречи из голосовой заметки, проверка квалификации сделок в CRM. Все сервисы собраны на одной странице, а модели работают в закрытом контуре.</p>
+    <h1>Портфель <em>внедрённых</em> <span style="white-space:nowrap">AI-решений</span>: от&nbsp;идеи до&nbsp;прода</h1>
+    <p class="lead">Единая точка входа в сервисы, спроектированные и доведённые до пользователей: продажи, знания, HR, юристы, финансы. Внутри — локальные LLM, RAG, ASR и агенты; снаружи — закрытая рутина и ускоренные сделки.</p>
     <div class="actions">
       <a class="btn btn-light" href="#aip-services" data-scroll>Выбрать сервис</a>
       <a class="btn btn-outline-light" href="#aip-principles" data-scroll>Как мы работаем</a>
@@ -220,7 +220,7 @@
       </div>
     </div>
     <div class="tiles">
-      <div class="tile"><div class="num">01</div><h3>Данные остаются в контуре</h3><p>Транскрибация, поиск и LLM работают на локальных моделях. Данные наружу не передаются.</p></div>
+      <div class="tile"><div class="num">01</div><h3>Чувствительные данные — в контуре</h3><p>Там, где данные чувствительны, транскрибация, поиск и LLM работают на локальных моделях внутри компании.</p></div>
       <div class="tile"><div class="num">02</div><h3>Человек принимает решение</h3><p>Сервис готовит черновик, подсвечивает пробелы и ссылается на источник. Решение остаётся за сотрудником.</p></div>
       <div class="tile"><div class="num">03</div><h3>Ответ со ссылкой на источник</h3><p>Ответ строится только по найденным фрагментам документов и данным CRM, каждый можно проверить.</p></div>
       <div class="tile"><div class="num">04</div><h3>Качество подтверждено замерами</h3><p>Каждая версия проходит замеры на эталонных наборах и оценку LLM-судьёй до выхода к пользователям.</p></div>
@@ -233,7 +233,7 @@
     <div class="cta">
       <div>
         <h2>Есть задача для AI-сервиса?</h2>
-        <p>Расскажите, какой процесс в продажах или маркетинге отнимает больше всего времени. Возможно, следующий сервис в каталоге будет про него.</p>
+        <p>Расскажите, какой процесс в вашем подразделении отнимает больше всего времени. Возможно, следующий сервис в каталоге будет про него.</p>
       </div>
       <a class="btn btn-light" id="aip-contact-btn" href="#">Написать</a>
     </div>
@@ -504,7 +504,7 @@
     {
       id: "next",
       title: "Новый сервис",
-      tagline: "Следующий AI-сервис для продаж и маркетинга уже в работе.",
+      tagline: "Следующий AI-сервис для бизнеса уже в работе.",
       category: "sales",
       status: "soon",
       icon: "plus"
@@ -562,11 +562,12 @@
   var cats = {};
   live.forEach(function (s) { cats[s.category] = 1; });
   var inProd = live.filter(function (s) { return s.status === "prod" || s.status === "preprod"; }).length;
+  var inPilot = live.filter(function (s) { return s.status === "pilot" || s.status === "poc"; }).length;
   $("aip-stats").innerHTML = [
     [live.length, plural(live.length, "сервис", "сервиса", "сервисов") + " в каталоге"],
     [Object.keys(cats).length, plural(Object.keys(cats).length, "направление", "направления", "направлений")],
-    [inProd, "у пользователей"],
-    ["0", "данных наружу"]
+    [inProd, "в проде"],
+    [inPilot, "в пилоте"]
   ].map(function (x) {
     return '<div class="stat"><b>' + esc(x[0]) + "</b><span>" + esc(x[1]) + "</span></div>";
   }).join("");
@@ -644,7 +645,7 @@
 
   if (CONTACT) $("aip-contact-btn").setAttribute("href", CONTACT);
   else $("aip-contact-btn").style.display = "none";
-  $("aip-year").textContent = "© " + new Date().getFullYear() + " · AI-сервисы для продаж и маркетинга";
+  $("aip-year").textContent = "© " + new Date().getFullYear() + " · AI-сервисы для бизнеса";
 
   renderChips();
   renderGrid();

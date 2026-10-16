@@ -449,6 +449,7 @@ CSS-переменные для светлой и тёмной темы (`prefer
 | Файл | Назначение |
 |---|---|
 | `.github/workflows/pages.yml` | На push в `main` и в PR: job `test` (`node --test tests/*.test.mjs`); на `main` дополнительно job `deploy`: подстановка конфига ИИ, `configure-pages` (с `enablement: true`), загрузка корня репозитория как артефакта, `deploy-pages` (требует Settings → Pages → Source: GitHub Actions); и job `deploy-beget`: подстановка конфига ИИ, пометка зеркала `noindex` (meta robots + `.htaccess`), запись `api/config.php` из секрета `AI_API_KEY`, загрузка по FTP (`SamKirkland/FTP-Deploy-Action`, секреты `BEGET_FTP_*`, переменная `BEGET_FTP_DIR`) без служебных каталогов |
+| `pages/ai-assistants/index.html` | Страница-каталог AI-сервисов для `scout-argument.ru/ai-assistants/`. Публикуется job `deploy-ai-assistants` (включается переменной `BEGET_AI_ASSISTANTS_DIR`, учётная запись FTP из `BEGET_FTP_AI_USER`/`BEGET_FTP_AI_PASSWORD` или общая); в зеркало сервиса и на GitHub Pages не попадает |
 | `scripts/inject-ai-config.mjs` | Читает `AI_*` из окружения (ключ только из `AI_BROWSER_API_KEY`), валидирует провайдера, перезаписывает `src/ai/config.js`. Пустые переменные не меняют значения по умолчанию |
 | `scripts/write-ai-proxy-config.mjs` | Создаёт `api/config.php` для прокси ИИ из `AI_API_KEY`, `AI_PROXY_BASE_URL`, `AI_MODEL`, `AI_PROXY_ORIGINS`; без ключа предупреждает, что прокси будет отвечать 503 |
 | `api/ai.php`, `api/config.example.php` | PHP-прокси ИИ на хостинге сайта (раздел 9.7) и образец его настроек |

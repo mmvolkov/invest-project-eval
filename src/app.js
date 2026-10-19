@@ -53,9 +53,16 @@ const state = {
 function migrateAiSettings(saved) {
   if (!saved || typeof saved !== 'object') return {};
   const stale = saved.provider === 'openai' && /\.cloudsmasters\.ru/.test(saved.baseUrl || '') && (!saved.apiKey || saved.apiKey === 'dummy-key');
-  if (!stale) return saved;
+  // Адрес, который не является http(s)-URL (например, e-mail, подставленный автозаполнением браузера
+  // в поле адреса), ведёт запросы на страницу сайта вместо прокси — такие настройки тоже сбрасываем.
+  const badUrl = !!saved.baseUrl && !isHttpUrl(saved.baseUrl);
+  if (!stale && !badUrl) return saved;
   LS.set('ipe:ai', {});
   return {};
+}
+
+function isHttpUrl(s) {
+  return /^https?:\/\/\S+$/i.test(String(s || '').trim());
 }
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -583,7 +590,7 @@ function openImportDialog() {
 /* ---------- ИИ-ассистент ---------- */
 function renderAiTab(box) {
   const s = state.ai.settings;
-  const configured = s.provider === 'webhook' ? !!s.baseUrl : !!s.apiKey || /localhost|127\.0\.0\.1/.test(s.baseUrl || '');
+  const configured = s.provider === 'webhook' ? isHttpUrl(s.baseUrl) : !!s.apiKey || /localhost|127\.0\.0\.1/.test(s.baseUrl || '');
   const isDefault = s.provider === DEFAULT_AI_CONFIG.provider && s.baseUrl === DEFAULT_AI_CONFIG.baseUrl && s.model === DEFAULT_AI_CONFIG.model && s.apiKey === DEFAULT_AI_CONFIG.apiKey;
   const defaultNote = DEFAULT_AI_CONFIG.baseUrl
     ? `<div class="note" style="margin-bottom:10px">${isDefault ? '✓ Используется подключение по умолчанию' : 'Для сайта задано подключение по умолчанию'}: <strong>${escapeHtml(DEFAULT_AI_CONFIG.label || DEFAULT_AI_CONFIG.model)}</strong>${DEFAULT_AI_CONFIG.apiKey || DEFAULT_AI_CONFIG.provider === 'webhook' ? '' : ' (ключ не задан — укажите свой или подключите прокси)'}.</div>`
@@ -598,9 +605,9 @@ function renderAiTab(box) {
       <h3>Подключение ИИ</h3>
       ${defaultNote}
       <div class="field"><label>Провайдер</label><select class="input" id="aiProvider">${PROVIDERS.map((p) => `<option value="${p.id}" ${s.provider === p.id ? 'selected' : ''}>${escapeHtml(p.label)}</option>`).join('')}</select></div>
-      <div class="field"><label>${s.provider === 'webhook' ? 'URL вебхука / прокси' : 'Base URL'}</label><input class="input" id="aiUrl" value="${escapeHtml(s.baseUrl || '')}" placeholder="${s.provider === 'webhook' ? 'https://n8n.example.com/webhook/finassist' : 'https://api.openai.com/v1'}" /></div>
-      <div class="field"><label>API-ключ ${s.provider === 'webhook' ? '(необязательно, Bearer)' : ''}</label><input class="input" id="aiKey" type="password" value="${escapeHtml(s.apiKey || '')}" autocomplete="off" /></div>
-      <div class="field"><label>Модель</label><input class="input" id="aiModel" value="${escapeHtml(s.model || '')}" placeholder="gpt-4o-mini / claude-sonnet-5-5 / deepseek-chat" /></div>
+      <div class="field"><label>${s.provider === 'webhook' ? 'URL вебхука / прокси' : 'Base URL'}</label><input class="input" id="aiUrl" name="ipe-ai-url" inputmode="url" spellcheck="false" autocomplete="off" value="${escapeHtml(s.baseUrl || '')}" placeholder="${s.provider === 'webhook' ? 'https://n8n.example.com/webhook/finassist' : 'https://api.openai.com/v1'}" /></div>
+      <div class="field"><label>API-ключ ${s.provider === 'webhook' ? '(необязательно, Bearer)' : ''}</label><input class="input" id="aiKey" name="ipe-ai-key" type="password" value="${escapeHtml(s.apiKey || '')}" autocomplete="new-password" /></div>
+      <div class="field"><label>Модель</label><input class="input" id="aiModel" name="ipe-ai-model" spellcheck="false" autocomplete="off" value="${escapeHtml(s.model || '')}" placeholder="gpt-4o-mini / claude-sonnet-5-5 / deepseek-chat" /></div>
       <div class="field"><label>Доп. заголовки (строка: Name: value)</label><textarea class="input" id="aiHeaders" rows="2" placeholder="HTTP-Referer: https://my.site">${escapeHtml(s.extraHeaders || '')}</textarea></div>
       <label class="check"><input type="checkbox" id="aiAuto" ${s.autoApply ? 'checked' : ''} /> Автопилот: применять предложенные изменения без подтверждения</label>
       <div class="row"><button class="btn primary" id="aiSave">Сохранить</button><button class="btn" id="aiTest">Проверить</button>${DEFAULT_AI_CONFIG.baseUrl && !isDefault ? '<button class="btn ghost" id="aiReset" title="Вернуть подключение по умолчанию">↺ По умолчанию</button>' : ''}</div>
@@ -690,11 +697,18 @@ function renderAiTab(box) {
     renderAiTab(box);
   });
   const saveSettings = () => {
-    state.ai.settings = { ...state.ai.settings, provider: $('#aiProvider').value, baseUrl: $('#aiUrl').value.trim(), apiKey: $('#aiKey').value.trim(), model: $('#aiModel').value.trim(), extraHeaders: $('#aiHeaders').value, autoApply: $('#aiAuto').checked };
+    const baseUrl = $('#aiUrl').value.trim();
+    if (baseUrl && !isHttpUrl(baseUrl)) {
+      toast('Адрес должен быть полным URL и начинаться с https:// (сейчас: «' + baseUrl.slice(0, 40) + '»)', 5000);
+      $('#aiUrl').focus();
+      return false;
+    }
+    state.ai.settings = { ...state.ai.settings, provider: $('#aiProvider').value, baseUrl, apiKey: $('#aiKey').value.trim(), model: $('#aiModel').value.trim(), extraHeaders: $('#aiHeaders').value, autoApply: $('#aiAuto').checked };
     LS.set('ipe:ai', state.ai.settings);
+    return true;
   };
   $('#aiSave').addEventListener('click', () => {
-    saveSettings();
+    if (!saveSettings()) return;
     toast('Настройки ИИ сохранены');
     renderAiTab(box);
   });
@@ -704,7 +718,7 @@ function renderAiTab(box) {
   $('#aiTest').addEventListener('click', () => {
     clearTimeout(testTimer);
     testTimer = setTimeout(() => {
-      saveSettings();
+      if (!saveSettings()) return;
       const s2 = state.ai.settings;
       if (!(s2.provider === 'webhook' ? !!s2.baseUrl : !!s2.apiKey || /localhost|127\.0\.0\.1/.test(s2.baseUrl || ''))) return renderAiTab(box);
       send('Ответь одной строкой: какой у проекта NPV и что это значит?');

@@ -66,11 +66,16 @@ export async function chat({ system, messages, context, settings, signal }) {
   }
   if (s.provider === 'webhook') {
     if (!s.baseUrl) throw new Error('Укажите URL вебхука');
+    if (!/^https?:\/\/\S+$/i.test(s.baseUrl)) throw new Error(`Адрес прокси должен быть полным URL, начинающимся с https:// (сейчас: «${s.baseUrl.slice(0, 60)}»). Нажмите «↺ По умолчанию» или исправьте поле «URL вебхука / прокси».`);
     if (s.apiKey) headers['Authorization'] = `Bearer ${s.apiKey}`;
     const res = await fetch(s.baseUrl, { method: 'POST', headers, signal, body: JSON.stringify({ system, messages, context, model: s.model || undefined }) });
     if (!res.ok) throw new Error(await readError(res));
     const ct = res.headers.get('content-type') || '';
-    if (!ct.includes('json')) return { text: await res.text(), raw: null };
+    if (!ct.includes('json')) {
+      const text = await res.text();
+      if (ct.includes('html') || /^\s*<(!doctype|html)/i.test(text)) throw new Error('По адресу прокси вернулась HTML-страница, а не ответ модели. Проверьте поле «URL вебхука / прокси» или нажмите «↺ По умолчанию».');
+      return { text, raw: null };
+    }
     const data = await res.json();
     const text = extractText(data);
     if (!text) throw new Error('Вебхук вернул ответ без текста. Ожидается { "reply": "…" } или формат OpenAI.');
